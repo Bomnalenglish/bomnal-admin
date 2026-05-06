@@ -219,13 +219,9 @@ tr:hover td{background:#fafafa}
 <div class="panel" id="panel-schedule">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
     <div style="font-size:15px;font-weight:700">수업 시간표</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn pri" id="sday-월" onclick="showScheduleDay('월')">월</button>
-      <button class="btn" id="sday-화" onclick="showScheduleDay('화')">화</button>
-      <button class="btn" id="sday-수" onclick="showScheduleDay('수')">수</button>
-      <button class="btn" id="sday-목" onclick="showScheduleDay('목')">목</button>
-      <button class="btn" id="sday-금" onclick="showScheduleDay('금')">금</button>
-      <button class="btn" id="sday-토" onclick="showScheduleDay('토')">토</button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div style="font-size:12px;color:#aaa">← 가로 스크롤로 전체 확인</div>
+      <button class="btn sm" onclick="exportSchedule()" style="background:#2d7a5f;color:#fff;border-color:#2d7a5f;font-size:11px">📤 시간표 내보내기</button>
     </div>
   </div>
   <div id="schedule-area" style="overflow-x:auto"></div>
@@ -750,6 +746,33 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
+<!-- 수업 이동 모달 -->
+<div class="modal-bg" id="ov-schedule-move">
+  <div class="modal" style="max-width:400px">
+    <h3>수업 이동</h3>
+    <div id="move-card-preview" style="background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:1rem;font-size:13px"></div>
+    <div class="frow2">
+      <label>이동할 요일</label>
+      <select id="move-day" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+        <option value="월">월요일</option>
+        <option value="화">화요일</option>
+        <option value="수">수요일</option>
+        <option value="목">목요일</option>
+        <option value="금">금요일</option>
+      </select>
+    </div>
+    <div class="frow2">
+      <label>이동할 선생님</label>
+      <select id="move-teacher" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+      </select>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-schedule-move')">취소</button>
+      <button class="btn pri" onclick="doMoveSchedule()">이동하기</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="ov-reg">
   <div class="modal">
     <h3>신규 학생 등록</h3>
@@ -860,631 +883,7 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-
-<script type="module">
-
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion, getDocs }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const FB_CONFIG = {
-  apiKey: "AIzaSyDSxsGjOdNX1tOhOyNLVaooWW7IAywkdyM",
-  authDomain: "bomnal-admin.firebaseapp.com",
-  projectId: "bomnal-admin",
-  storageBucket: "bomnal-admin.firebasestorage.app",
-  messagingSenderId: "1079029970303",
-  appId: "1:1079029970303:web:ad98df559f8d1d4c06564a"
-};
-const fbApp = initializeApp(FB_CONFIG);
-const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
-
-// ── 전역 상태 ──
-let ME = null;
-const ROLE_TABS = {
-  director: ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn','settings'],
-  manager:  ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
-  teacher:  ['notice','schedule','book','absent','vocab']
-};
-const TAB_LABELS = {
-  notice:'공지사항', schedule:'📅 시간표',
-  junior:'초중등부', senior:'고등부', members:'회원명부',
-  book:'교재비', summary:'현황 요약', absent:'결석예정자',
-  vocab:'단어시험', history:'이전 기록', withdrawn:'퇴원생', settings:'⚙ 설정'
-};
-const ROLE_NAMES = {director:'원장', manager:'실장', teacher:'선생님'};
-
-var INITIAL_STUDENTS = [
-  {num:'314',cls:'종촌중3A',name:'김민하',phone:'01028271312',fee:270000,memo:'교과/형제할인',sibling:'윤하',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'307',cls:'어진중3A',name:'임서현',phone:'01023216200',fee:270000,memo:'교과/형제할인',sibling:'임건휘',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'512',cls:'종촌중3A',name:'최윤서',phone:'01052183753',fee:265000,memo:'교과/형제할인',sibling:'윤채,윤호',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'725',cls:'종촌중3A',name:'한예주',phone:'01041979179',fee:275000,memo:'형제할인',sibling:'주원',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'3809',cls:'어진중3A',name:'서진우',phone:'01074073809',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
-  {num:'10130',cls:'어진중3A',name:'이하윤',phone:'01099588525',fee:275000,memo:'형제할인',sibling:'이윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'1125',cls:'종촌중3C',name:'이혜원',phone:'01089049357',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'126',cls:'종촌중3C',name:'민태기',phone:'01072533274',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'9044',cls:'어진중3B',name:'노현승',phone:'01036798044',fee:270000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'520',cls:'Sprout1',name:'박재윤',phone:'01027636760',fee:235000,memo:'형제할인',sibling:'도윤',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'918',cls:'Sprout2',name:'이건우',phone:'01077204157',fee:155000,memo:'형제할인',sibling:'서아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'715',cls:'Sprout1',name:'조윤아',phone:'01033867090',fee:230000,memo:'교과/형제할인',sibling:'민준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1401',cls:'Sprout1',name:'송정우',phone:'01044221401',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'924',cls:'seed4',name:'고현서',phone:'01088627051',fee:205000,memo:'형제할인',sibling:'현준',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'4860',cls:'어진중1A',name:'손효원',phone:'01040024860',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'01459',cls:'seed3',name:'임서율',phone:'01088821459',fee:200000,memo:'교과/형제할인',sibling:'임서준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'423',cls:'seed4',name:'김민찬',phone:'01077429685',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'1021',cls:'seed4',name:'김성윤',phone:'01085670061',fee:235000,memo:'형제할인',sibling:'성준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'130',cls:'Sprout2',name:'김선우',phone:'01046185357',fee:235000,memo:'형제할인',sibling:'도현',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'219',cls:'Sprout2',name:'이재희',phone:'01091165177',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'120920',cls:'종촌중2D',name:'왕지후',phone:'01050152683',fee:270000,memo:'교과/형제할인',sibling:'왕지아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'1827',cls:'seed11',name:'이준우',phone:'01030251827',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'204',cls:'seed12',name:'박도윤',phone:'01027636760',fee:235000,memo:'형제할인',sibling:'재윤',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'150611',cls:'seed12',name:'문예원',phone:'01091468834',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'424',cls:'Sprout5',name:'정재준',phone:'01024160011',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'716',cls:'Sprout5',name:'한주원',phone:'01041979179',fee:235000,memo:'형제할인',sibling:'예주',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1024',cls:'종촌중1A',name:'김채아',phone:'01072267861',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'721',cls:'종촌중1A',name:'고현준',phone:'01088627051',fee:270000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1120',cls:'어진중2B',name:'강시연',phone:'01071178690',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3214',cls:'종촌중1A',name:'강백현',phone:'01084868401',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'3219',cls:'어진중2A',name:'송지원',phone:'01032963219',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2288',cls:'종촌중2A',name:'이래오',phone:'01072362288',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0829',cls:'어진중2B',name:'박상빈',phone:'01037214215',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'1459',cls:'종촌중1F',name:'임서준',phone:'01088821459',fee:270000,memo:'교과/형제할인',sibling:'서율',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'430',cls:'어진중3B',name:'김승후',phone:'01036199870',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'10260',cls:'종촌중3C',name:'오재민',phone:'01094074602',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'1227',cls:'종촌중2A',name:'최경재',phone:'01086176038',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'205',cls:'종촌중2A',name:'조민준',phone:'01033867090',fee:270000,memo:'교과/형제할인',sibling:'윤아',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'711',cls:'종촌중1A',name:'신예담',phone:'01064083661',fee:275000,memo:'형제할인',sibling:'신우연',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'1203',cls:'종촌중2A',name:'김윤하',phone:'01028271312',fee:275000,memo:'형제할인',sibling:'민하',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'918',cls:'종촌중2F',name:'이서아',phone:'01077204157',fee:275000,memo:'형제할인',sibling:'건우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'1021',cls:'종촌중2C',name:'이예나',phone:'01099022414',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1205',cls:'종촌중2A',name:'문준희',phone:'01044522509',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'401',cls:'종촌중2A',name:'김수현',phone:'01095150266',fee:270000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1002',cls:'어진중3B',name:'오연규',phone:'01032181154',fee:275000,memo:'형제할인',sibling:'정윤',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
-  {num:'805',cls:'종촌중2A',name:'김루아',phone:'01066103290',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'303',cls:'Sprout2',name:'김성준',phone:'01085670061',fee:235000,memo:'형제할인',sibling:'성윤',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'4280',cls:'어진중3B',name:'양현우',phone:'01089339936',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'212',cls:'Sprout4',name:'유준혁',phone:'01071925706',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-14"}},
-  {num:'6700',cls:'seed11',name:'최현준',phone:'01080196700',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0806',cls:'Sprout5',name:'홍주훈',phone:'01056290405',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'2635',cls:'Sprout2',name:'신지윤',phone:'01086092635',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'6795',cls:'종촌중3A',name:'전수윤',phone:'01067950813',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'3500',cls:'어진중3A',name:'정한비',phone:'01035009531',fee:270000,memo:'교과/형제할인',sibling:'한결',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'3753',cls:'종촌중2C',name:'최윤채',phone:'01052183753',fee:265000,memo:'교과/형제할인',sibling:'윤서,윤호',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'5218',cls:'Seed3',name:'최윤호',phone:'01052183753',fee:195000,memo:'교과/형제할인',sibling:'윤서,윤채',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3102',cls:'Seed12',name:'이은재',phone:'01031021133',fee:230000,memo:'형제/교과할인',sibling:'혜리',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'1133',cls:'종촌중2F',name:'이혜리',phone:'01031021133',fee:270000,memo:'형제/교과할인',sibling:'은재',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'3679',cls:'Sprout4',name:'노현서',phone:'01036798044',fee:235000,memo:'형제할인',sibling:'현승',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'12345',cls:'seed12',name:'송시윤',phone:'01047203171',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'9479',cls:'Sprout5',name:'서가온',phone:'01094797558',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'9055',cls:'종촌중3A',name:'이예주',phone:'01090919055',fee:275000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'9052',cls:'종촌중1A',name:'오정윤',phone:'01032181154',fee:270000,memo:'형제/교과할인',sibling:'연규',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
-  {num:'802',cls:'종촌중3C',name:'민경준',phone:'01082574066',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8131',cls:'종촌중1D',name:'조우진',phone:'01087498131',fee:275000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8108',cls:'Sprout4',name:'박시언',phone:'01088268018',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2610',cls:'종촌중2F',name:'이서윤',phone:'01026103608',fee:275000,memo:'형제할인',sibling:'이준서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8984',cls:'Sprout2',name:'김규연',phone:'01089843299',fee:235000,memo:'형제할인',sibling:'김도연',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'1675',cls:'종촌중2C',name:'남효인',phone:'01090501675',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'161202',cls:'seed5',name:'장지서',phone:'01086229817',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'160922',cls:'seed5',name:'노아영',phone:'01031283409',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0120',cls:'Seed3',name:'방은비',phone:'01073940525',fee:230000,memo:'교과/형제할인',sibling:'은별',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'4029',cls:'종촌중1A',name:'방은별',phone:'01073940525',fee:270000,memo:'교과/형제할인',sibling:'은비',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'4924',cls:'어진중1A',name:'박세원',phone:'01077374924',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'171225',cls:'seed5',name:'배관영',phone:'01098323060',fee:235000,memo:'형제할인',sibling:'수진',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'5015',cls:'seed13',name:'왕지아',phone:'01050152683',fee:230000,memo:'교과/형제할인',sibling:'지후',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'151117',cls:'seed13',name:'이예슬',phone:'01045371203',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'151225',cls:'seed13',name:'김재민',phone:'01027617962',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'3608',cls:'Sprout5',name:'이준서',phone:'01026103608',fee:235000,memo:'형제할인',sibling:'이서윤',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0419',cls:'종촌중2C',name:'양서진',phone:'01062560419',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8591',cls:'seed11',name:'유민호',phone:'01051128591',fee:230000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1126',cls:'Sprout4',name:'정유진',phone:'01087891126',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2626',cls:'seed13',name:'김수빈',phone:'01094102626',fee:230000,memo:'형제할인(만원)',sibling:'김수현,수아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0118',cls:'seed4',name:'진유찬',phone:'01030339249',fee:235000,memo:'형제할인',sibling:'진유림',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'9446',cls:'seed13',name:'정현준',phone:'01094463821',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'02626',cls:'seed14',name:'김수현',phone:'01094102626',fee:200000,memo:'형제할인(만원)',sibling:'김수빈,수아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'102626',cls:'seed14',name:'김수아',phone:'01094102626',fee:200000,memo:'형제할인(만원)',sibling:'김수현,수빈',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'7646',cls:'seed14',name:'윤정원',phone:'01062027646',fee:205000,memo:'형제할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2579',cls:'seed12',name:'송서진',phone:'01054262579',fee:235000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'5105',cls:'seed5',name:'진예은',phone:'01033525105',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'9352',cls:'Sprout1',name:'주세훈',phone:'01062469352',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2452',cls:'종촌중3C',name:'윤선오',phone:'01038352452',fee:270000,memo:'교과/형제할인',sibling:'윤채이',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'8525',cls:'종촌중1A',name:'이윤우',phone:'01099588525',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'80270',cls:'Sprout2',name:'박채연',phone:'01088778027',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2297',cls:'종촌중2F',name:'강민서',phone:'01064152297',fee:275000,memo:'형제할인',sibling:'강지율',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3575',cls:'종촌중2F',name:'남소율',phone:'01084623575',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'8551',cls:'Sprout2',name:'김석현',phone:'01029598551',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'60930',cls:'종촌중2F',name:'조희원',phone:'01021760930',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2294',cls:'Sprout2',name:'장예진',phone:'01079242294',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'6200',cls:'Sprout2',name:'임건휘',phone:'01023216200',fee:235000,memo:'형제할인',sibling:'임서현',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'8772',cls:'seed13',name:'박희재',phone:'01052928772',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'8205',cls:'종촌중1B',name:'송혜주',phone:'01052718205',fee:265000,memo:'교과/형제할인',sibling:'송혜원/윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'8305',cls:'종촌중1B',name:'송혜원',phone:'01052718205',fee:265000,memo:'교과/형제할인',sibling:'송혜주/윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'1989',cls:'종촌중1D',name:'이지원',phone:'01031771989',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'707',cls:'seed12',name:'김도현',phone:'01046185357',fee:235000,memo:'형제할인',sibling:'김선우',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3833',cls:'종촌중1E',name:'임승혁',phone:'01049483833',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'3299',cls:'어진중2B',name:'김도연',phone:'01089843299',fee:275000,memo:'형제할인',sibling:'김규연',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'6415',cls:'Sprout4',name:'강지율',phone:'01064152297',fee:235000,memo:'형제할인',sibling:'강민서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'120607',cls:'어진중2B',name:'황해솔',phone:'01052140711',fee:275000,memo:'형제할인',sibling:'황가온',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'4894',cls:'sprout3',name:'손나율',phone:'01030154894',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
-  {num:'7311',cls:'종촌중2D',name:'서다현',phone:'01040407311',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'6699',cls:'seed14',name:'인서은',phone:'01091236699',fee:210000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'000725',cls:'종촌중1A',name:'배수진',phone:'01098323060',fee:270000,memo:'교과/형제할인',sibling:'배관영',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2231',cls:'어진중2A',name:'신유나',phone:'01091482231',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'150914',cls:'seed4',name:'송윤우',phone:'01052718205',fee:225000,memo:'교과/형제할인',sibling:'송혜원/혜주',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'121203',cls:'종촌중2C',name:'유민준',phone:'01051128591',fee:270000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'5724',cls:'종촌중2D',name:'고은서',phone:'01085268668',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'8210',cls:'sprout3',name:'김현중',phone:'01039978210',fee:275000,memo:'형제할인',sibling:'김해중',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1031',cls:'seed11',name:'김해중',phone:'01039978210',fee:235000,memo:'형제할인',sibling:'김현중',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'1317',cls:'seed12',name:'남태윤',phone:'01044851317',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2452',cls:'종촌중1C',name:'윤채이',phone:'01038352452',fee:270000,memo:'교과/형제할인',sibling:'윤선오',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'3241',cls:'sprout3',name:'김유은',phone:'01050653241',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'9502',cls:'Sprout2',name:'김시완',phone:'01030429502',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'',cls:'어진중2B',name:'여민준',phone:'01020939317',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0804',cls:'Sprout2',name:'김하린',phone:'01021287920',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'',cls:'종촌중2C',name:'김강우',phone:'01048406979',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'9249',cls:'seed3',name:'진유림',phone:'01030339249',fee:235000,memo:'형제할인',sibling:'진유찬',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'0330',cls:'종촌중1B',name:'김준범',phone:'01099117912',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'3166',cls:'종촌중1B',name:'정은우',phone:'01077993166',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'308',cls:'종촌중1C',name:'김민성',phone:'01024011730',fee:275000,memo:'형제할인',sibling:'민서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
-  {num:'1730',cls:'Sprout2',name:'김민서',phone:'01024011730',fee:235000,memo:'형제할인',sibling:'민성',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
-  {num:'',cls:'어진중3B',name:'윤지원',phone:'01062027646',fee:275000,memo:'형제할인',sibling:'정원',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'어진중3B',name:'이상원',phone:'01033045883',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'',cls:'어진중3B',name:'지예준',phone:'01071837945',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3049',cls:'Seed12',name:'구나영',phone:'01095943049',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0760',cls:'Sprout2',name:'이예지',phone:'01045720760',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌중1B',name:'김은기',phone:'01036559679',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'4931',cls:'종촌중1B',name:'윤예하',phone:'01024254931',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8379',cls:'Seed13',name:'심이레',phone:'01082728379',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
-  {num:'5960',cls:'Seed13',name:'김가온',phone:'01044135960',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'',cls:'종촌중2D',name:'김지원',phone:'01057225895',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌중2D',name:'정준희',phone:'01057319100',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2705',cls:'Sprout4',name:'이현서',phone:'01055892705',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'8393',cls:'Sprout6',name:'고하은',phone:'01031188393',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'4804',cls:'Seed11',name:'이서진',phone:'01026494804',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'6707',cls:'Seed3',name:'유하진',phone:'01097976707',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'3799',cls:'Seed1',name:'김민재',phone:'01098613799',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2833',cls:'Seed11',name:'박시윤',phone:'01020052833',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌중1D',name:'김승훈',phone:'01033304616',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'1571',cls:'Seed11',name:'임도희',phone:'01064791571',fee:235000,memo:'형제할인',sibling:'도훈',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'0225',cls:'어진중1A',name:'임도훈',phone:'01064791571',fee:270000,memo:'교과/형제할인',sibling:'도희',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'어진중3B',name:'정민섭',phone:'01054443820',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌중1E',name:'박가온',phone:'01071905690',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2424',cls:'Sprout6',name:'박지안',phone:'01034662424',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'1026',cls:'Seed11',name:'김도윤',phone:'01095150266',fee:230000,memo:'교과/형제할인',sibling:'수현',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'2699',cls:'Seed11',name:'조국',phone:'01088702699',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'1980',cls:'Seed3',name:'유수예',phone:'01031151980',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8660',cls:'Sprout6',name:'윤사랑',phone:'01020878660',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌중2C',name:'천승재',phone:'01091725333',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
-  {num:'',cls:'종촌중1E',name:'박형식',phone:'01092512394',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3671',cls:'seed14',name:'권민준',phone:'01030123671',fee:210000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2478',cls:'seed15',name:'김수현',phone:'01045932478',fee:160000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'511',cls:'종촌고1A',name:'장서희',phone:'01098789778',fee:310000,memo:'교과/형제할인',sibling:'예준',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'0127',cls:'종촌고1B',name:'엄태준',phone:'01088871500',fee:315000,memo:'교과할인',sibling:'',method:'입금',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'703',cls:'고운고1',name:'이시온',phone:'01037821703',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'324',cls:'종촌고1A',name:'전용성',phone:'01034673963',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'605',cls:'종촌고1A',name:'윤태원',phone:'01053140692',fee:310000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'1228',cls:'종촌고1B',name:'정한결',phone:'01035009531',fee:310000,memo:'교과/형제할인',sibling:'한비',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'7030',cls:'종촌고1B',name:'황가온',phone:'01052140711',fee:315000,memo:'형제할인',sibling:'해솔',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'9751',cls:'종촌고1B',name:'주현우',phone:'01066909751',fee:315000,memo:'교과할인',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'3097',cls:'고운고1',name:'진시훈',phone:'01034783097',fee:315000,memo:'교과할인',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'9203',cls:'종촌고1C',name:'양가연',phone:'01092037217',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'9631',cls:'종촌고1A',name:'이서준',phone:'01047126862',fee:310000,memo:'형제/교과할인',sibling:'이채은',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'8016',cls:'고운고2',name:'윤호',phone:'01047878016',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
-  {num:'119',cls:'고운고2',name:'장예준',phone:'01098789778',fee:315000,memo:'형제할인',sibling:'서희',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'526',cls:'고운고2',name:'정다현',phone:'01051041000',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'0514',cls:'종촌고2A',name:'고은채',phone:'01044475912',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'117',cls:'종촌고3',name:'양기호',phone:'01089339936',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'22000',cls:'종촌고3',name:'성정은',phone:'01035430680',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'902',cls:'종촌고3',name:'윤현서',phone:'01053140692',fee:310000,memo:'교과/형제할인',sibling:'태원',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'4712',cls:'종촌고3',name:'이채은',phone:'01047126862',fee:315000,memo:'형제할인',sibling:'이서준',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'4084',cls:'종촌고2B',name:'권민준',phone:'01052254084',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'80916',cls:'종촌고3',name:'한예인',phone:'01081219101',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌고2A',name:'마수민',phone:'01063952344',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고2B',name:'신지윤B',phone:'01041181734',fee:315000,memo:'교과할인',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고2B',name:'최유진',phone:'01041316410',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'3070',cls:'종촌고1B',name:'구자현',phone:'01084193070',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고2B',name:'유시현',phone:'01023844362',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'2432',cls:'종촌고3',name:'오예주',phone:'01024324482',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌고1A',name:'장동훈',phone:'01054326109',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'',cls:'종촌고1A',name:'신우연',phone:'01064083661',fee:315000,memo:'형제할인',sibling:'신예담',method:'입금',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'',cls:'종촌고1C',name:'황하은',phone:'01045576245',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌고3',name:'이영은',phone:'01025530360',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고3',name:'김태은',phone:'01047383157',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고3',name:'박서연',phone:'01091966872',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
-  {num:'',cls:'종촌고2B',name:'신지훈',phone:'01043884936',fee:315000,memo:'교과할인',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고1A',name:'박서연',phone:'01088180129',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-  {num:'',cls:'종촌고1A',name:'강예리',phone:'01030169213',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
-  {num:'',cls:'종촌고1B',name:'전상훈',phone:'01094172802',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
-  {num:'',cls:'종촌고1B',name:'이은채',phone:'01030335353',fee:320000,memo:'',sibling:'',method:'',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
-];
-
-var SCHEDULE_DATA = {"월": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "4:30-5:30", "name": "Sprout2 초6", "students": "김성준 / 신지윤 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1C", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout2 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "화": {"Alicia": [{"time": "2:20-3:20", "name": "seed5 초4", "students": "장지서 / 노아영"}, {"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 유민호 / 최현준 / 이준우 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2B", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "수": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1B", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "3:00-5:00", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준 / 신유나"}, {"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout3 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "목": {"Alicia": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 최현준 / 이준우 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2C", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "금": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초4) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 김성윤 / 고현서 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 강백현 / 고현준 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:30-5:30", "name": "Sprout5 6학년", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 박시언 / 유준혁 / 정유진 / 강지율 / 이현서"}, {"time": "4:30-5:30", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}, {"time": "5:30-6:50", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "7:00-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}], "현아T": [{"time": "4:30-6:30", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "유미T": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 이준우 / 최현준 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:20-5:20", "name": "Sprout3 6학년", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "준식T": [{"time": "4:30-6:30", "name": "이상원 / 지예준", "students": "이상원 / 지예준"}, {"time": "7:00-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}};
-
-// ── Firebase Auth ──
-document.getElementById('li-btn').onclick = doLogin;
-document.getElementById('li-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pw').focus(); });
-document.getElementById('li-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
-async function doLogin() {
-  const email = document.getElementById('li-email').value.trim();
-  const pw = document.getElementById('li-pw').value;
-  document.getElementById('li-err').textContent = '';
-  if(!email||!pw){ document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요'; return; }
-  try {
-    document.getElementById('li-btn').textContent = '로그인 중...';
-    await signInWithEmailAndPassword(auth, email, pw);
-  } catch(e) {
-    document.getElementById('li-err').textContent = '이메일 또는 비밀번호가 올바르지 않아요';
-    document.getElementById('li-btn').textContent = '로그인';
-  }
-}
-
-onAuthStateChanged(auth, async user => {
-  if(user) {
-    const snap = await getDoc(doc(db,'users',user.uid));
-    if(snap.exists()) {
-      ME = { uid:user.uid, email:user.email, ...snap.data() };
-    } else {
-      ME = { uid:user.uid, email:user.email, name:user.email.split('@')[0], role:'teacher' };
-      await setDoc(doc(db,'users',user.uid), { name:ME.name, role:ME.role, email:ME.email });
-    }
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'flex';
-    initAppWithAuth();
-  } else {
-    ME = null;
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
-    document.getElementById('li-btn').textContent = '로그인';
-  }
-});
-
-function initAppWithAuth() {
-  // 사용자 표시
-  document.getElementById('user-disp').textContent = ME.name + ' ' + (ROLE_NAMES[ME.role]||'');
-  const dot = document.getElementById('role-dot');
-  if(dot) { dot.className = 'role-dot ' + ME.role; }
-
-  // 권한별 버튼 표시
-  if(ME.role==='director'||ME.role==='manager') {
-    const bm = document.getElementById('btn-next-month'); if(bm) bm.style.display='inline-flex';
-    const bs = document.getElementById('btn-new-student'); if(bs) bs.style.display='inline-flex';
-  }
-  if(ME.role==='director') {
-    const bn = document.getElementById('btn-write-notice'); if(bn) bn.style.display='inline-flex';
-  }
-  document.getElementById('btn-logout').style.display = 'inline-flex';
-  document.getElementById('user-badge').style.removeProperty('display');
-
-  // 탭 권한에 따라 재구성
-  buildTabsByRole();
-
-  // 로그아웃
-  document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-  // Firebase 구독 시작
-  subscribeFirestore();
-
-  // 초기 데이터 삽입 (비어있으면)
-  initStudentsIfEmpty();
-}
-
-function buildTabsByRole() {
-  const tabs = ROLE_TABS[ME.role] || ROLE_TABS.teacher;
-  const tabsEl = document.querySelector('.tabs');
-  if(!tabsEl) return;
-  tabsEl.innerHTML = tabs.map((t,i) => {
-    const badge = (t==='history'||t==='withdrawn') ? `<span id="badge-${t}" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span>` : '';
-    return `<button class="tab${i===0?' on':''}" data-tab="${t}" onclick="sw('${t}',this)">${TAB_LABELS[t]}${badge}</button>`;
-  }).join('');
-  // 첫 패널 활성화
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
-  const firstPanel = document.getElementById('panel-'+tabs[0]);
-  if(firstPanel) firstPanel.classList.add('on');
-}
-
-// ── Firestore 실시간 구독 ──
-function subscribeFirestore() {
-  // 시간표 실시간 구독
-  onSnapshot(doc(db,'schedule','data'), snap => {
-    if(snap.exists()) {
-      const d = snap.data();
-      if(d.schedule) {
-        Object.assign(SCHEDULE_DATA, d.schedule);
-        if(document.getElementById('panel-schedule') && 
-           document.getElementById('panel-schedule').classList.contains('on')) {
-          renderSchedule();
-        }
-      }
-    } else {
-      // 처음이면 기본 데이터 저장
-      setDoc(doc(db,'schedule','data'), {schedule: SCHEDULE_DATA});
-    }
-  });
-
-  // 학생
-  onSnapshot(collection(db,'students'), snap => {
-    TD=[]; WD=[];
-    snap.forEach(d => {
-      const s={id:d.id,...d.data()};
-      (s.withdrawn ? WD : TD).push(s);
-    });
-    TD.sort((a,b)=>(a.cls||'').localeCompare(b.cls||''));
-    TD_JUNIOR = TD.filter(r=>!r.level||r.level==='junior');
-    TD_SENIOR = TD.filter(r=>r.level==='senior');
-    rt('junior'); rt('senior'); rwn(); updStats('junior'); updStats('senior');
-    updCls('junior'); updCls('senior'); renderMembers(); renderVocab();
-  });
-  // 교재비
-  onSnapshot(collection(db,'books'), snap => {
-    BD=[];
-    snap.forEach(d=>BD.push({id:d.id,...d.data()}));
-    BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));
-    fb();
-  });
-  // 결석
-  onSnapshot(collection(db,'absent'), snap => {
-    ABSENT=[];
-    snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
-    ABSENT.sort((a,b)=>a.date>b.date?1:-1);
-    renderAbsent();
-  });
-  // 단어시험
-  onSnapshot(doc(db,'vocab','data'), snap => {
-    if(snap.exists()){ const d=snap.data(); VOCAB_MONTHLY=d.monthly||{}; VOCAB_TOTALS=d.totals||{}; }
-    renderVocab();
-  });
-  // 이전기록
-  onSnapshot(doc(db,'tuition','history'), snap => {
-    TUITION_HIST = snap.exists() ? (snap.data().list||[]) : [];
-    renderHist();
-    const b=document.getElementById('badge-history'); if(b) b.textContent=TUITION_HIST.length;
-  });
-  // 공지
-  onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')), snap => {
-    NOTICES=[];
-    snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
-    renderNotices();
-    checkNoticePopup();
-  });
-}
-
-// ── Firestore 초기 데이터 삽입 ──
-async function initStudentsIfEmpty() {
-  const snap = await getDocs(collection(db,'students'));
-  if(snap.empty) {
-    console.log('학생 데이터 삽입 중...');
-    for(const s of INITIAL_STUDENTS) {
-      await addDoc(collection(db,'students'), s);
-    }
-    console.log('완료!');
-  }
-}
-
-// ── 수업료 Firestore 연동 ──
-window.togPaid_local = window.togPaid;
-window.togPaid = async function(id) {
-  const r=TD.find(s=>s.id===id); if(!r) return;
-  const mk=curKey();
-  const isPaid=!!(r.paidMonths||{})[mk];
-  const pm={...(r.paidMonths||{})}, pd={...(r.paidDates||{})};
-  if(isPaid){delete pm[mk];delete pd[mk];}else{pm[mk]=true;pd[mk]=toISO();}
-  await updateDoc(doc(db,'students',id),{paidMonths:pm,paidDates:pd});
-};
-
-window.setMethod_local = window.setMethod;
-window.setMethod = async function(id,m) {
-  await updateDoc(doc(db,'students',id),{method:m}); closeAllMpop();
-};
-
-window.withdraw_local = window.withdraw;
-window.withdraw = async function(id) {
-  if(!confirm('퇴원 처리할까요?')) return;
-  await updateDoc(doc(db,'students',id),{withdrawn:true,withdrawDate:fmt(toISO())});
-};
-
-window.restore_local = window.restore;
-window.restore = async function(id) {
-  await updateDoc(doc(db,'students',id),{withdrawn:false,withdrawDate:''});
-};
-
-window.addStudent_local = window.addStudent;
-window.addStudent = async function() {
-  const name=document.getElementById('f-name').value.trim();
-  const cls=document.getElementById('f-cls').value.trim();
-  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
-  const level = cls.includes('고') ? 'senior' : 'junior';
-  await addDoc(collection(db,'students'),{
-    name,cls,fee:parseInt(document.getElementById('f-fee').value)||0,
-    method:regMethod||'',phone:document.getElementById('f-phone').value.trim(),
-    sibling:document.getElementById('f-sib').value.trim(),
-    memo:document.getElementById('f-memo').value.trim(),
-    isNew:true,withdrawn:false,paidMonths:{},paidDates:{},level:level
-  });
-  closeOv('ov-reg');
-};
-
-window.saveEdit_local = window.saveEdit;
-window.saveEdit = async function() {
-  const name=document.getElementById('e-name').value.trim();
-  const cls=document.getElementById('e-cls').value.trim();
-  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
-  const r=TD[editIdx];
-  const level = cls.includes('고') ? 'senior' : 'junior';
-  await updateDoc(doc(db,'students',r.id),{
-    name,cls,fee:parseInt(document.getElementById('e-fee').value)||0,
-    method:editMethod||r.method||'',level:level,
-    phone:document.getElementById('e-phone').value.trim(),
-    sibling:document.getElementById('e-sib').value.trim(),
-    memo:document.getElementById('e-memo').value.trim()
-  });
-  closeOv('ov-edit');
-};
-
-// 납부일
-window.pickDate_local = window.pickDate;
-window.pickDate = async function(iso) {
-  if(calIdx<0) return;
-  const r=TD[calIdx]; if(!r||!r.id) return;
-  const mk=curKey(); const pd={...(r.paidDates||{})}; pd[mk]=iso;
-  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
-};
-window.clearDate_local = window.clearDate;
-window.clearDate = async function() {
-  if(calIdx<0) return;
-  const r=TD[calIdx]; if(!r||!r.id) return;
-  const mk=curKey(); const pd={...(r.paidDates||{})}; delete pd[mk];
-  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
-};
-// openCal도 id 기반으로
-window.openCal_local = window.openCal;
-window.openCal = function(id, i) {
-  calIdx=i;
-  const r=TD[i]; if(!r) return;
-  const mk=curKey(); const pd=(r.paidDates||{})[mk]||'';
-  document.getElementById('cal-label').textContent=r.name+' · '+(r.cls||'')+' — 납부일 선택';
-  const base=pd?new Date(pd):new Date();
-  calY=base.getFullYear(); calM=base.getMonth();
-  drawCal(); openOv('ov-cal');
-};
-
-// 결제방식
-window.setMethod_local = window.setMethod;
-
-// 교재비 Firestore
-window.addBook_local = window.addBook;
-window.addBook = async function() {
-  const book=document.getElementById('b-book').value.trim();
-  const inputName=document.getElementById('b-student-input').value.trim();
-  if(!bookSelectedStudents.length && inputName) bookSelectedStudents.push({name:inputName,phone:''});
-  if(!bookSelectedStudents.length||!book){alert('학생과 교재명은 필수입니다');return;}
-  const amount=parseInt(document.getElementById('b-amount').value)||0;
-  for(const s of bookSelectedStudents) {
-    await addDoc(collection(db,'books'),{
-      name:s.name,phone:s.phone,book,amount,
-      dateStr:document.getElementById('b-date').value,
-      arrival:document.getElementById('b-arrival').value,
-      manager:document.getElementById('b-manager').value,
-      payType:document.getElementById('b-pay-type').value,
-      memo:document.getElementById('b-memo').value.trim(),
-      isPaid:false,paidDate:''
-    });
-  }
-  closeOv('ov-book');
-  alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
-};
-
-window.togBook_local = window.togBook;
-window.togBook = async function(id) {
-  const r=BD.find(b=>b.id===id); if(!r) return;
-  await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
-};
-
-// 결석 Firestore
-window.addAbsent_local = window.addAbsent;
-window.addAbsent = async function() {
-  const date=document.getElementById('ab-date').value;
-  const sv=document.getElementById('ab-student').value;
-  if(!date||!sv){alert('날짜와 학생을 선택해주세요');return;}
-  const parts=sv.split('|');
-  await addDoc(collection(db,'absent'),{
-    date,name:parts[0],cls:parts[1]||'',
-    reason:document.getElementById('ab-reason').value,
-    memo:document.getElementById('ab-memo').value
-  });
-  closeOv('ov-absent');
-};
-window.delAbsent_local = window.delAbsent;
-window.delAbsent = async function(id,e) {
-  e.stopPropagation();
-  await deleteDoc(doc(db,'absent',id));
-};
-
-// 단어시험 Firestore
-window.saveVocabToDb_local = window.saveVocabToDb;
-window.saveVocabToDb = async function() {
-  await setDoc(doc(db,'vocab','data'),{monthly:VOCAB_MONTHLY,totals:VOCAB_TOTALS});
-};
-window.saveVTotal_local = window.saveVTotal;
-window.saveVTotal = async function(btn) {
-  const cls=btn.getAttribute('data-cls');
-  const val=parseInt(document.getElementById('vt-input-'+CSS.escape(cls)).value);
-  if(!val||val<1){alert('올바른 숫자를 입력해주세요');return;}
-  VOCAB_TOTALS[cls]=val;
-  await setDoc(doc(db,'vocab','data'),{monthly:VOCAB_MONTHLY,totals:VOCAB_TOTALS});
-  alert(cls+' 총점을 '+val+'점으로 저장했어요!');
-};
-
-// 다음달 Firestore
-window.doNextMonth_local = window.doNextMonth;
-window.doNextMonth = async function() {
-  const mk=curKey();
-  const snapshot=TD.map(r=>(({
-    name:r.name,cls:r.cls||'',phone:r.phone||'',fee:r.fee||0,method:r.method||'',memo:r.memo||'',
-    paid:!!(r.paidMonths||{})[mk],date:(r.paidDates||{})[mk]||''
-  })));
-  const existing=[...TUITION_HIST];
-  existing.push({year:curYear,month:curMonth,label:`${curYear}년 ${curMonth}월`,students:snapshot});
-  await setDoc(doc(db,'tuition','history'),{list:existing});
-  for(const r of TD) if(r.isNew) await updateDoc(doc(db,'students',r.id),{isNew:false});
-  if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
-  updHeader(); closeOv('ov-next'); alert('넘겼어요!');
-};
-
-// 공지 Firestore
-window.saveNotice_local = window.saveNotice;
-window.saveNotice = async function() {
-  const title=document.getElementById('n-title').value.trim();
-  const body=document.getElementById('n-body').value.trim();
-  if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
-  const allChecked=document.getElementById('n-all').checked;
-  const targets=[];
-  if(allChecked) targets.push('전체');
-  else document.querySelectorAll('.n-teacher:checked').forEach(cb=>targets.push(cb.value));
-  if(!targets.length){alert('수신 대상을 선택해주세요');return;}
-  await addDoc(collection(db,'notices'),{
-    title,body,targets,authorUid:ME.uid,authorName:ME.name,
-    readBy:[],readNames:[],createdAt:serverTimestamp()
-  });
-  closeOv('ov-notice');
-};
-window.confirmNotice_local = window.confirmNotice || function(){};
-window.confirmNotice = async function(id) {
-  await updateDoc(doc(db,'notices',id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
-};
-window.delNotice_local = window.deleteNotice || function(){};
-window.deleteNotice = async function(idx) {
-  if(!confirm('공지를 삭제할까요?')) return;
-  await deleteDoc(doc(db,'notices',NOTICES[idx].id));
-};
-window.confirmAllNotices = async function() {
-  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
-  for(const n of unread) await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
-  const p=document.getElementById('npopup'); if(p) p.remove();
-};
-
-function checkNoticePopup() {
-  if(!ME) return;
-  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
-  if(!unread.length||document.getElementById('npopup')) return;
-  const div=document.createElement('div');
-  div.id='npopup';
-  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem';
-  div.innerHTML=`<div style="background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 16px 64px rgba(0,0,0,.2)">
-    <div style="background:#1a1916;color:#fff;padding:1rem 1.25rem;font-size:16px;font-weight:700">📢 읽지 않은 공지 ${unread.length}건</div>
-    <div style="padding:1.5rem;max-height:55vh;overflow-y:auto">${unread.map(n=>`<div style="background:#f2f1ed;border-radius:6px;padding:1rem;margin-bottom:.75rem"><div style="font-size:14px;font-weight:700;margin-bottom:.5rem">${n.title}</div><div style="font-size:13px;white-space:pre-wrap">${n.body}</div></div>`).join('')}</div>
-    <div style="padding:1rem 1.25rem;border-top:1px solid #e8e6e0;display:flex;justify-content:flex-end">
-      <button class="btn pri" onclick="confirmAllNotices()">모두 확인했어요</button>
-    </div>
-  </div>`;
-  document.body.appendChild(div);
-}
-
-</script>
-
 <script>
-
 var DAYS = ['일','월','화','수','목','금','토'];
 var selMethod = '';
 var calYear, calMonth, calIdx;
@@ -3154,7 +2553,7 @@ function saveVocabTotal(cls) {
 }
 
 var vcClsEl = document.getElementById('vc-cls'); if (vcClsEl) vcClsEl.addEventListener('change', updVocabStudents);
-['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms'].forEach(function(id) {
+['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('click', function(e){
     if (e.target===this) closeOv(id);
@@ -3409,17 +2808,12 @@ function getAccountStr() {
 
 
 // ── 시간표 ──
-
+var SCHEDULE_DATA = {"월": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "4:30-5:30", "name": "Sprout2 초6", "students": "김성준 / 신지윤 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1C", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout2 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "화": {"Alicia": [{"time": "2:20-3:20", "name": "seed5 초4", "students": "장지서 / 노아영"}, {"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 유민호 / 최현준 / 이준우 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2B", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "수": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1B", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "3:00-5:00", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준 / 신유나"}, {"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout3 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "목": {"Alicia": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 최현준 / 이준우 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2C", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "금": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초4) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 김성윤 / 고현서 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 강백현 / 고현준 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:30-5:30", "name": "Sprout5 6학년", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 박시언 / 유준혁 / 정유진 / 강지율 / 이현서"}, {"time": "4:30-5:30", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}, {"time": "5:30-6:50", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "7:00-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}], "현아T": [{"time": "4:30-6:30", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "유미T": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 이준우 / 최현준 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:20-5:20", "name": "Sprout3 6학년", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "준식T": [{"time": "4:30-6:30", "name": "이상원 / 지예준", "students": "이상원 / 지예준"}, {"time": "7:00-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}};
 
 var currentScheduleDay = '월';
 
 function showScheduleDay(day) {
   currentScheduleDay = day;
-  // 탭 버튼 스타일
-  ['월','화','수','목','금','토'].forEach(function(d){
-    var btn = document.getElementById('sday-'+d);
-    if(btn) btn.className = d===day ? 'btn pri' : 'btn';
-  });
   renderSchedule();
 }
 
@@ -3452,7 +2846,6 @@ var TEACHER_BORDER = {
   '유미T':'#6a3ab5','준식T':'#0a8a6a','이설경T':'#b5500a','한유미T':'#5a8a0a',
   '황현아T':'#b5295a','양준식T':'#0a8a6a','정상은T':'#d4800a'
 };
-
 
 function renderSchedule() {
   var area = document.getElementById('schedule-area');
@@ -3649,17 +3042,399 @@ function addScheduleTeacher() {
   renderSchedule();
 }
 
-async function saveScheduleLocal() {
+function saveScheduleLocal() {
+  localStorage.setItem('bomnal_schedule', JSON.stringify(SCHEDULE_DATA));
+}
+
+// 시간표는 항상 코드의 SCHEDULE_DATA 사용 (localStorage 무시)
+localStorage.removeItem('bomnal_schedule');
+
+
+// ── 수업 이동 ──
+var moveTarget = null; // {day, teacher, ci}
+
+function openMoveSchedule(day, teacher, ci) {
+  moveTarget = {day:day, teacher:teacher, ci:parseInt(ci)};
+  var cls = SCHEDULE_DATA[day][teacher][ci];
+
+  // 미리보기
+  document.getElementById('move-card-preview').innerHTML =
+    '<b>'+cls.name+'</b> ('+cls.time+')<br><span style="color:#888;font-size:11px">'+cls.students.split('/').slice(0,4).join(' / ')+'...</span>';
+
+  // 요일 선택 기본값
+  document.getElementById('move-day').value = day;
+
+  // 선생님 목록 업데이트
+  updateMoveTeacherList(day);
+
+  // 요일 변경시 선생님 목록 갱신
+  document.getElementById('move-day').onchange = function() {
+    updateMoveTeacherList(this.value);
+  };
+
+  openOv('ov-schedule-move');
+}
+
+function updateMoveTeacherList(day) {
+  var allTeachers = ['Alicia','Claire','상은T','현아T','유미T','준식T'];
+  var sel = document.getElementById('move-teacher');
+  sel.innerHTML = allTeachers.map(function(t) {
+    return '<option value="'+t+'">'+t+'</option>';
+  }).join('');
+  if(moveTarget) sel.value = moveTarget.teacher;
+}
+
+function doMoveSchedule() {
+  if(!moveTarget) return;
+  var toDay = document.getElementById('move-day').value;
+  var toTeacher = document.getElementById('move-teacher').value;
+  var fromDay = moveTarget.day;
+  var fromTeacher = moveTarget.teacher;
+  var ci = moveTarget.ci;
+
+  if(toDay === fromDay && toTeacher === fromTeacher) {
+    alert('같은 위치예요!');
+    return;
+  }
+
+  // 수업 꺼내기
+  var cls = SCHEDULE_DATA[fromDay][fromTeacher].splice(ci, 1)[0];
+
+  // 목적지에 추가
+  if(!SCHEDULE_DATA[toDay]) SCHEDULE_DATA[toDay] = {};
+  if(!SCHEDULE_DATA[toDay][toTeacher]) SCHEDULE_DATA[toDay][toTeacher] = [];
+  SCHEDULE_DATA[toDay][toTeacher].push(cls);
+
+  // 빈 선생님 열 정리
+  if(SCHEDULE_DATA[fromDay][fromTeacher].length === 0) {
+    delete SCHEDULE_DATA[fromDay][fromTeacher];
+  }
+
+  closeOv('ov-schedule-move');
+  renderSchedule();
+  alert(cls.name + ' 이동 완료!');
+}
+
+function exportSchedule() {
+  var json = JSON.stringify(SCHEDULE_DATA, null, 2);
+  document.getElementById('sms-content').value = json;
+  openOv('ov-sms');
+  document.querySelector('#ov-sms h3').textContent = '📤 시간표 데이터 (복사해서 전달)';
+}
+</script>
+</div><!-- app-screen -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc,
+  deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const fbApp = initializeApp({
+  apiKey: "AIzaSyDSxsGjOdNX1tOhOyNLVaooWW7IAywkdyM",
+  authDomain: "bomnal-admin.firebaseapp.com",
+  projectId: "bomnal-admin",
+  storageBucket: "bomnal-admin.firebasestorage.app",
+  messagingSenderId: "1079029970303",
+  appId: "1:1079029970303:web:ad98df559f8d1d4c06564a"
+});
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+let ME = null;
+
+const ROLE_TABS = {
+  director: ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn','settings'],
+  manager:  ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
+  teacher:  ['notice','schedule','book','absent','vocab']
+};
+const TAB_LABELS = {
+  notice:'공지사항', schedule:'📅 시간표',
+  junior:'초중등부', senior:'고등부', members:'회원명부',
+  book:'교재비', summary:'현황 요약', absent:'결석예정자',
+  vocab:'단어시험', history:'이전 기록', withdrawn:'퇴원생', settings:'⚙ 설정'
+};
+
+// 로그인
+document.getElementById('li-btn').onclick = async function() {
+  const email = document.getElementById('li-email').value.trim();
+  const pw = document.getElementById('li-pw').value;
+  document.getElementById('li-err').textContent = '';
+  if(!email||!pw){ document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요'; return; }
   try {
-    await setDoc(doc(db,'schedule','data'), {schedule: SCHEDULE_DATA});
+    this.textContent = '로그인 중...';
+    await signInWithEmailAndPassword(auth, email, pw);
   } catch(e) {
-    console.error('시간표 저장 실패:', e);
+    document.getElementById('li-err').textContent = '이메일 또는 비밀번호가 올바르지 않아요';
+    this.textContent = '로그인';
+  }
+};
+document.getElementById('li-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pw').focus(); });
+document.getElementById('li-pw').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-btn').click(); });
+
+onAuthStateChanged(auth, async user => {
+  if(user) {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    ME = snap.exists() ? {uid:user.uid,...snap.data()} : {uid:user.uid,email:user.email,name:user.email.split('@')[0],role:'teacher'};
+    if(!snap.exists()) await setDoc(doc(db,'users',user.uid),{name:ME.name,role:ME.role,email:user.email});
+    
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    
+    // 사용자 표시
+    const badge = document.getElementById('user-badge');
+    if(badge) { badge.textContent = ME.name; badge.style.display='inline-block'; }
+    
+    // 권한별 탭 구성
+    buildTabsByRole();
+    
+    // 로그아웃
+    const logoutBtn = document.getElementById('btn-logout');
+    if(logoutBtn) { logoutBtn.style.display='inline-flex'; logoutBtn.onclick=()=>signOut(auth); }
+    
+    // 원장/실장만 다음달/신규등록
+    if(ME.role==='director'||ME.role==='manager') {
+      const bm=document.getElementById('btn-next-month'); if(bm) bm.style.display='inline-flex';
+      const bs=document.getElementById('btn-new-student'); if(bs) bs.style.display='inline-flex';
+    }
+    if(ME.role==='director') {
+      const bn=document.getElementById('btn-write-notice'); if(bn) bn.style.display='inline-flex';
+    }
+    
+    subscribeFirestore();
+    initStudentsIfEmpty();
+  } else {
+    ME = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('li-btn').textContent = '로그인';
+  }
+});
+
+function buildTabsByRole() {
+  const tabs = ROLE_TABS[ME.role] || ROLE_TABS.teacher;
+  const tabsEl = document.querySelector('.tabs');
+  if(!tabsEl) return;
+  tabsEl.innerHTML = tabs.map((t,i) => {
+    const badge = (t==='history'||t==='withdrawn') ? `<span id="badge-${t}" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span>` : '';
+    return `<button class="tab${i===0?' on':''}" onclick="sw('${t}',this)">${TAB_LABELS[t]}${badge}</button>`;
+  }).join('');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  const first = document.getElementById('panel-'+tabs[0]);
+  if(first) first.classList.add('on');
+}
+
+function subscribeFirestore() {
+  // 학생 실시간
+  onSnapshot(collection(db,'students'), snap => {
+    TD=[]; WD=[];
+    snap.forEach(d => { const s={id:d.id,...d.data()}; (s.withdrawn?WD:TD).push(s); });
+    TD.sort((a,b)=>(a.cls||'').localeCompare(b.cls||''));
+    TD_JUNIOR=TD.filter(r=>!r.level||r.level==='junior');
+    TD_SENIOR=TD.filter(r=>r.level==='senior');
+    updCls('junior'); updCls('senior'); rt('junior'); rt('senior');
+    updStats('junior'); updStats('senior'); renderMembers(); renderVocab();
+    const wc=document.getElementById('wc'); if(wc) wc.textContent=WD.length;
+  });
+  // 교재비
+  onSnapshot(collection(db,'books'), snap => {
+    BD=[];
+    snap.forEach(d=>BD.push({id:d.id,...d.data()}));
+    BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));
+    fb();
+  });
+  // 결석
+  onSnapshot(collection(db,'absent'), snap => {
+    ABSENT=[];
+    snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
+    ABSENT.sort((a,b)=>a.date>b.date?1:-1);
+    renderAbsent();
+  });
+  // 단어시험
+  onSnapshot(doc(db,'vocab','data'), snap => {
+    if(snap.exists()){ const d=snap.data(); VOCAB_MONTHLY=d.monthly||{}; VOCAB_TOTALS=d.totals||{}; }
+    renderVocab();
+  });
+  // 이전기록
+  onSnapshot(doc(db,'tuition','history'), snap => {
+    TUITION_HIST=snap.exists()?(snap.data().list||[]):[];
+    const b=document.getElementById('badge-history'); if(b) b.textContent=TUITION_HIST.length;
+  });
+  // 공지
+  onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')), snap => {
+    NOTICES=[];
+    snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
+    renderNotices();
+    checkNoticePopup();
+  });
+  // 시간표
+  onSnapshot(doc(db,'schedule','data'), snap => {
+    if(snap.exists()&&snap.data().schedule) {
+      Object.assign(SCHEDULE_DATA, snap.data().schedule);
+    } else {
+      setDoc(doc(db,'schedule','data'), {schedule:SCHEDULE_DATA});
+    }
+    if(document.getElementById('schedule-area')) renderSchedule();
+  });
+}
+
+async function initStudentsIfEmpty() {
+  const snap = await getDocs(collection(db,'students'));
+  if(snap.empty) {
+    for(const s of INITIAL_STUDENTS) await addDoc(collection(db,'students'), s);
   }
 }
 
-// 시간표는 Firestore에서 실시간 구독
+// Firestore 오버라이드
+window.togPaid = async function(id) {
+  const r=TD.find(s=>s.id===id); if(!r) return;
+  const mk=curKey(); const pm={...(r.paidMonths||{})}, pd={...(r.paidDates||{})};
+  if(pm[mk]){delete pm[mk];delete pd[mk];}else{pm[mk]=true;pd[mk]=toISO();}
+  await updateDoc(doc(db,'students',id),{paidMonths:pm,paidDates:pd});
+};
+window.setMethod = async function(id,m) {
+  await updateDoc(doc(db,'students',id),{method:m}); closeAllMpop();
+};
+window.withdraw = async function(id) {
+  if(!confirm('퇴원 처리할까요?')) return;
+  await updateDoc(doc(db,'students',id),{withdrawn:true,withdrawDate:toISO()});
+};
+window.restore = async function(id) {
+  await updateDoc(doc(db,'students',id),{withdrawn:false,withdrawDate:''});
+};
+window.addStudent = async function() {
+  const name=document.getElementById('f-name').value.trim();
+  const cls=document.getElementById('f-cls').value.trim();
+  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
+  await addDoc(collection(db,'students'),{
+    name,cls,fee:parseInt(document.getElementById('f-fee').value)||0,
+    method:regMethod||'',phone:document.getElementById('f-phone').value.trim(),
+    sibling:document.getElementById('f-sib').value.trim(),
+    memo:document.getElementById('f-memo').value.trim(),
+    isNew:true,withdrawn:false,paidMonths:{},paidDates:{},
+    level:cls.includes('고')?'senior':'junior'
+  });
+  closeOv('ov-reg');
+};
+window.saveEdit = async function() {
+  const name=document.getElementById('e-name').value.trim();
+  const cls=document.getElementById('e-cls').value.trim();
+  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
+  const r=TD[editIdx];
+  await updateDoc(doc(db,'students',r.id),{
+    name,cls,fee:parseInt(document.getElementById('e-fee').value)||0,
+    method:editMethod||r.method||'',level:cls.includes('고')?'senior':'junior',
+    phone:document.getElementById('e-phone').value.trim(),
+    sibling:document.getElementById('e-sib').value.trim(),
+    memo:document.getElementById('e-memo').value.trim()
+  });
+  closeOv('ov-edit');
+};
+window.pickDate = async function(iso) {
+  const r=TD[calIdx]; if(!r||!r.id) return;
+  const mk=curKey(); const pd={...(r.paidDates||{})}; pd[mk]=iso;
+  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
+};
+window.clearDate = async function() {
+  const r=TD[calIdx]; if(!r||!r.id) return;
+  const mk=curKey(); const pd={...(r.paidDates||{})}; delete pd[mk];
+  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
+};
+window.addBook = async function() {
+  const book=document.getElementById('b-book').value.trim();
+  const inputName=document.getElementById('b-student-input').value.trim();
+  if(!bookSelectedStudents.length&&inputName) bookSelectedStudents.push({name:inputName,phone:''});
+  if(!bookSelectedStudents.length||!book){alert('학생과 교재명은 필수입니다');return;}
+  for(const s of bookSelectedStudents) {
+    await addDoc(collection(db,'books'),{
+      name:s.name,phone:s.phone,book,
+      amount:parseInt(document.getElementById('b-amount').value)||0,
+      dateStr:document.getElementById('b-date').value,
+      arrival:document.getElementById('b-arrival').value,
+      manager:document.getElementById('b-manager').value,
+      payType:document.getElementById('b-pay-type').value,
+      memo:document.getElementById('b-memo').value.trim(),
+      isPaid:false,paidDate:''
+    });
+  }
+  closeOv('ov-book');
+  alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
+};
+window.togBook = async function(id) {
+  const r=BD.find(b=>b.id===id); if(!r) return;
+  await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
+};
+window.addAbsent = async function() {
+  const date=document.getElementById('ab-date').value;
+  const sv=document.getElementById('ab-student').value;
+  if(!date||!sv){alert('날짜와 학생을 선택해주세요');return;}
+  const parts=sv.split('|');
+  await addDoc(collection(db,'absent'),{
+    date,name:parts[0],cls:parts[1]||'',
+    reason:document.getElementById('ab-reason').value,
+    memo:document.getElementById('ab-memo').value
+  });
+  closeOv('ov-absent');
+};
+window.delAbsent = async function(id,e) {
+  e.stopPropagation();
+  await deleteDoc(doc(db,'absent',id));
+};
+window.saveNotice = async function() {
+  const title=document.getElementById('n-title').value.trim();
+  const body=document.getElementById('n-body').value.trim();
+  if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
+  const allChecked=document.getElementById('n-all').checked;
+  const targets=[];
+  if(allChecked) targets.push('전체');
+  else document.querySelectorAll('.n-teacher:checked').forEach(cb=>targets.push(cb.value));
+  if(!targets.length){alert('수신 대상을 선택해주세요');return;}
+  await addDoc(collection(db,'notices'),{
+    title,body,targets,authorUid:ME.uid,authorName:ME.name,
+    readBy:[],readNames:[],createdAt:serverTimestamp()
+  });
+  closeOv('ov-notice');
+};
+window.deleteNotice = async function(idx) {
+  if(!confirm('공지를 삭제할까요?')) return;
+  await deleteDoc(doc(db,'notices',NOTICES[idx].id));
+};
+window.confirmAllNotices = async function() {
+  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
+  for(const n of unread) await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
+  const p=document.getElementById('npopup'); if(p) p.remove();
+};
+window.saveScheduleLocal = async function() {
+  try { await setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA}); } catch(e){}
+};
+window.doNextMonth = async function() {
+  const mk=curKey();
+  const snapshot=TD.map(r=>({name:r.name,cls:r.cls||'',phone:r.phone||'',fee:r.fee||0,method:r.method||'',memo:r.memo||'',paid:!!(r.paidMonths||{})[mk],date:(r.paidDates||{})[mk]||''}));
+  const existing=[...TUITION_HIST];
+  existing.push({year:curYear,month:curMonth,label:`${curYear}년 ${curMonth}월`,students:snapshot});
+  await setDoc(doc(db,'tuition','history'),{list:existing});
+  for(const r of TD) if(r.isNew) await updateDoc(doc(db,'students',r.id),{isNew:false});
+  if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
+  updHeader(); closeOv('ov-next'); alert('넘겼어요!');
+};
 
-
+function checkNoticePopup() {
+  if(!ME) return;
+  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
+  if(!unread.length||document.getElementById('npopup')) return;
+  const div=document.createElement('div');
+  div.id='npopup';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem';
+  div.innerHTML=`<div style="background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 16px 64px rgba(0,0,0,.2)">
+    <div style="background:#1a1916;color:#fff;padding:1rem 1.25rem;font-size:16px;font-weight:700">📢 읽지 않은 공지 ${unread.length}건</div>
+    <div style="padding:1.5rem;max-height:55vh;overflow-y:auto">${unread.map(n=>`<div style="background:#f2f1ed;border-radius:6px;padding:1rem;margin-bottom:.75rem"><div style="font-size:14px;font-weight:700;margin-bottom:.5rem">${n.title}</div><div style="font-size:13px;white-space:pre-wrap">${n.body}</div></div>`).join('')}</div>
+    <div style="padding:1rem 1.25rem;border-top:1px solid #e8e6e0;display:flex;justify-content:flex-end">
+      <button class="btn pri" onclick="confirmAllNotices()">모두 확인했어요</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+}
 </script>
 </body>
 </html>
