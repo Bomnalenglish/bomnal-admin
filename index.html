@@ -3550,10 +3550,7 @@ window.addBook=async function(){
   const studentNames=bookSelectedStudents.map(s=>s.name).join(', ');
   await addDoc(collection(db,'notifications'),{
     type:'book_order',title:'📚 교재 주문 요청',
-    body:(ME.name||'선생님')+'이 교재를 추가했어요.
-학생: '+studentNames+'
-교재: '+book+(amount?'
-금액: '+amount.toLocaleString()+'원':''),
+    body:(ME.name||'선생님')+'이 교재를 추가했어요.\n학생: '+studentNames+'\n교재: '+book+(amount?'\n금액: '+amount.toLocaleString()+'원':''),
     from:ME.name||'',targetRole:'desk',readBy:[],createdAt:serverTimestamp()
   });
   closeOv('ov-book');alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
@@ -3613,40 +3610,6 @@ window.doNextMonth=async function(){
   if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
   updHeader();closeOv('ov-next');alert('넘겼어요!');
 };
-window.saveAligoSettings=function(){
-  ALIGO={
-    user:document.getElementById('aligo-user').value.trim(),
-    key:document.getElementById('aligo-key').value.trim(),
-    sender:document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  try{
-    localStorage.setItem('bomnal_aligo',JSON.stringify(ALIGO));
-    const check=JSON.parse(localStorage.getItem('bomnal_aligo')||'{}');
-    const saved=document.getElementById('aligo-saved');
-    if(saved){
-      saved.textContent=check.key?'✓ 저장됐어요! (Key: '+check.key.substr(0,4)+'***)':'저장 실패!';
-      saved.style.display='block';setTimeout(()=>saved.style.display='none',4000);
-    }
-  }catch(e){alert('저장 오류: '+e.message);}
-};
-window.testAligoSms=async function(){
-  ALIGO={
-    user:document.getElementById('aligo-user').value.trim(),
-    key:document.getElementById('aligo-key').value.trim(),
-    sender:document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender){alert('User ID, API Key, 발신번호를 모두 입력해주세요!');return;}
-  const testPhone=prompt('테스트 발송할 전화번호:');
-  if(!testPhone)return;
-  const ok=await sendAligoSms(testPhone.replace(/-/g,''),'봄날 English 문자 테스트입니다 :)');
-  if(ok)alert('테스트 문자 발송됐어요! 확인해보세요 😊');
-};
-window.renderAligoSettings=function(){
-  ALIGO=JSON.parse(localStorage.getItem('bomnal_aligo')||'{"user":"","key":"","sender":""}');
-  const u=document.getElementById('aligo-user');if(u)u.value=ALIGO.user||'';
-  const k=document.getElementById('aligo-key');if(k)k.value=ALIGO.key||'';
-  const s=document.getElementById('aligo-sender');if(s)s.value=ALIGO.sender||'';
-};
 
 function showBookNotification(n){
   if(document.getElementById('notif-'+n.id))return;
@@ -3694,6 +3657,92 @@ function checkNoticePopup(){
     </div>
   </div>`;
   document.body.appendChild(div);
+}
+
+// ── 알리고 SMS (일반 script) ──
+var ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
+
+function saveAligoSettings() {
+  ALIGO = {
+    user: document.getElementById('aligo-user').value.trim(),
+    key: document.getElementById('aligo-key').value.trim(),
+    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  try {
+    localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
+    var check = JSON.parse(localStorage.getItem('bomnal_aligo') || '{}');
+    var saved = document.getElementById('aligo-saved');
+    if(saved) {
+      saved.textContent = check.key ? '저장됐어요! (Key: '+check.key.substr(0,4)+'***)' : '저장 실패!';
+      saved.style.display = 'block';
+      setTimeout(function(){ saved.style.display = 'none'; }, 4000);
+    }
+  } catch(e) { alert('저장 오류: '+e.message); }
+}
+
+function renderAligoSettings() {
+  ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
+  var u = document.getElementById('aligo-user'); if(u) u.value = ALIGO.user||'';
+  var k = document.getElementById('aligo-key'); if(k) k.value = ALIGO.key||'';
+  var s = document.getElementById('aligo-sender'); if(s) s.value = ALIGO.sender||'';
+}
+
+async function sendAligoSms(phone, msg) {
+  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender) {
+    alert('설정 탭에서 알리고 API 정보를 먼저 입력해주세요!'); return false;
+  }
+  if(!phone) { alert('전화번호가 없어요!'); return false; }
+  var formData = new FormData();
+  formData.append('key', ALIGO.key);
+  formData.append('user_id', ALIGO.user);
+  formData.append('sender', ALIGO.sender);
+  formData.append('receiver', phone.replace(/-/g,''));
+  formData.append('msg', msg);
+  formData.append('testmode_yn', 'N');
+  try {
+    var res = await fetch('https://apis.aligo.in/send/', {method:'POST', body:formData});
+    var data = await res.json();
+    if(data.result_code==='1') return true;
+    alert('발송 실패: '+(data.message||'오류')); return false;
+  } catch(e) { alert('발송 오류: '+e.message); return false; }
+}
+
+async function testAligoSms() {
+  ALIGO = {
+    user: document.getElementById('aligo-user').value.trim(),
+    key: document.getElementById('aligo-key').value.trim(),
+    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender) { alert('User ID, API Key, 발신번호를 모두 입력해주세요!'); return; }
+  var testPhone = prompt('테스트 발송할 전화번호:');
+  if(!testPhone) return;
+  var ok = await sendAligoSms(testPhone.replace(/-/g,''), '봄날 English 문자 테스트입니다 :)');
+  if(ok) alert('테스트 문자 발송됐어요!');
+}
+
+function getBookSmsText(r) {
+  var accountStr = ACCOUNT && ACCOUNT.number
+    ? ACCOUNT.bank+' '+ACCOUNT.number+' ('+ACCOUNT.holder+')'
+    : '계좌 미등록 (설정 탭에서 등록)';
+  return [
+    r.name+' 학생 새 교재 주문 예정입니다.',
+    '',
+    '교재: '+r.book,
+    '결제금: '+(r.amount||0).toLocaleString()+'원',
+    '결제방식: '+(r.payType||'계좌이체'),
+    '결제계좌: '+accountStr,
+    '',
+    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.',
+    '감사합니다 :) 봄날 English'
+  ].join('\n');
+}
+
+function sendBookSms(i) {
+  var r = BD[i]; if(!r) return;
+  var student = TD.find(function(s){ return s.name===r.name; });
+  var phone = r.phone||(student&&student.phone)||'';
+  var msg = getBookSmsText(r);
+  openSmsSendModal(r.name, phone, msg);
 }
 </script>
 </body>
