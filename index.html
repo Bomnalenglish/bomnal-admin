@@ -3558,7 +3558,7 @@ window.dismissNotif = function dismissNotif(id) {
   if(el) { el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='.2s'; setTimeout(()=>el.remove(),200); }
 }
 
-async window.confirmBookNotif = function confirmBookNotif(id) {
+window.confirmBookNotif = async function confirmBookNotif(id) {
   dismissNotif(id);
   try { await updateDoc(doc(db,'notifications',id),{readBy:arrayUnion(ME.uid)}); } catch(e){}
 }
@@ -3657,7 +3657,7 @@ window.sendAligoSms = async function sendAligoSms(phone, msg) {
   }
 }
 
-async window.sendBookSms = function sendBookSms(i) {
+window.sendBookSms = async function sendBookSms(i) {
   var r = BD[i];
   if(!r) return;
 
