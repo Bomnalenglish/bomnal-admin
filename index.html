@@ -2823,6 +2823,7 @@ var ACCOUNT = JSON.parse(localStorage.getItem('bomnal_account') || '{"bank":"카
 
 function saveTeachers() {
   localStorage.setItem('bomnal_teachers', JSON.stringify(TEACHERS));
+  if(window._saveSettingsFirestore) window._saveSettingsFirestore();
 }
 
 function renderSettings() {
@@ -2883,6 +2884,7 @@ function saveAccountInfo() {
     holder: document.getElementById('account-holder').value.trim()
   };
   localStorage.setItem('bomnal_account', JSON.stringify(ACCOUNT));
+  if(window._saveSettingsFirestore) window._saveSettingsFirestore();
   var saved = document.getElementById('account-saved');
   if (saved) { saved.style.display = 'block'; setTimeout(function(){ saved.style.display = 'none'; }, 2000); }
   updateSmsTemplatePreview();
@@ -3441,16 +3443,21 @@ const TAB_LABELS = {
   vocab:'단어시험', history:'이전 기록', withdrawn:'퇴원생', settings:'⚙ 설정'
 };
 
-document.getElementById('li-btn').onclick = async function() {
-  const email = document.getElementById('li-email').value.trim();
-  const pw = document.getElementById('li-pw').value;
-  document.getElementById('li-err').textContent = '';
-  if(!email||!pw){document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요';return;}
-  try { this.textContent='로그인 중...'; await signInWithEmailAndPassword(auth,email,pw); }
-  catch(e) { document.getElementById('li-err').textContent='이메일 또는 비밀번호가 올바르지 않아요'; this.textContent='로그인'; }
-};
-document.getElementById('li-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('li-pw').focus();});
-document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('li-btn').click();});
+document.addEventListener('DOMContentLoaded', function() {
+  const liBtn = document.getElementById('li-btn');
+  const liEmail = document.getElementById('li-email');
+  const liPw = document.getElementById('li-pw');
+  if(liBtn) liBtn.onclick = async function() {
+    const email = liEmail.value.trim();
+    const pw = liPw.value;
+    document.getElementById('li-err').textContent = '';
+    if(!email||!pw){document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요';return;}
+    try { this.textContent='로그인 중...'; await signInWithEmailAndPassword(auth,email,pw); }
+    catch(e) { document.getElementById('li-err').textContent='이메일 또는 비밀번호가 올바르지 않아요'; this.textContent='로그인'; }
+  };
+  if(liEmail) liEmail.addEventListener('keydown',e=>{if(e.key==='Enter')liPw.focus();});
+  if(liPw) liPw.addEventListener('keydown',e=>{if(e.key==='Enter')liBtn.click();});
+});
 
 onAuthStateChanged(auth, async user => {
   if(user) {
@@ -3524,6 +3531,19 @@ function subscribeFirestore() {
     NOTICES=[];snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
     renderNotices();checkNoticePopup();
   });
+  // 설정 (선생님 목록, 계좌 정보)
+  onSnapshot(doc(db,'settings','config'), snap => {
+    if(snap.exists()) {
+      const d = snap.data();
+      if(d.teachers) { TEACHERS = d.teachers; }
+      if(d.account) { ACCOUNT = d.account; }
+      if(d.aligo) { ALIGO = d.aligo; }
+      // 설정 탭 열려있으면 다시 렌더
+      const sp = document.getElementById('panel-settings');
+      if(sp && sp.classList.contains('on')) renderSettings();
+    }
+  });
+
   onSnapshot(doc(db,'schedule','data'),snap=>{
     if(snap.exists()&&snap.data().schedule)Object.assign(SCHEDULE_DATA,snap.data().schedule);
     else setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});
@@ -3627,6 +3647,16 @@ window.togBook=async function(id){
   const r=BD.find(b=>b.id===id);if(!r)return;
   await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
 };
+window._saveSettingsFirestore = async function() {
+  try {
+    await setDoc(doc(db,'settings','config'), {
+      teachers: TEACHERS,
+      account: ACCOUNT,
+      aligo: ALIGO
+    });
+  } catch(e) { console.error('설정 저장 실패:', e); }
+};
+window._saveSettingsFirestore=window._saveSettingsFirestore;
 window._saveBookEditFirestore=async function(id, updated){
   if(!id) return;
   try { await updateDoc(doc(db,'books',id), updated); } catch(e){ console.error(e); }
@@ -3749,6 +3779,7 @@ function saveAligoSettings() {
       saved.style.display = 'block';
       setTimeout(function(){ saved.style.display = 'none'; }, 4000);
     }
+    if(window._saveSettingsFirestore) window._saveSettingsFirestore();
   } catch(e) { alert('저장 오류: '+e.message); }
 }
 
