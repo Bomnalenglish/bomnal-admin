@@ -175,11 +175,6 @@ tr:hover td{background:#fafafa}
 .schedule-edit-area{margin-top:6px;display:none}
 .schedule-edit-area textarea{width:100%;font-size:11px;padding:5px;border:1px solid #ddd;border-radius:4px;resize:vertical;font-family:inherit;min-height:60px}
 .schedule-edit-area .edit-btns{display:flex;gap:5px;margin-top:4px}
-
-@keyframes slideInRight {
-  from { transform: translateX(100px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
 </style>
 </head>
 <body>
@@ -800,6 +795,36 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
+<!-- 문자 직접 발송 모달 -->
+<div class="modal-bg" id="ov-sms-send">
+  <div class="modal" style="max-width:420px">
+    <h3>📤 문자 발송</h3>
+    <div class="frow2">
+      <label>받는 분 이름</label>
+      <div style="position:relative">
+        <input type="text" id="sms-recv-name" placeholder="이름 검색 또는 직접 입력..." autocomplete="off"
+          oninput="smsNameSearch(this.value)"
+          style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box">
+        <div id="sms-name-list" style="display:none;position:absolute;z-index:400;background:#fff;border:1px solid #e8e6e0;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;width:100%;margin-top:2px"></div>
+      </div>
+    </div>
+    <div class="frow2">
+      <label>전화번호 *</label>
+      <input type="tel" id="sms-recv-phone" placeholder="01012345678" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div class="frow2">
+      <label>문자 내용 *</label>
+      <textarea id="sms-send-body" rows="8" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;line-height:1.6"></textarea>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:-8px;margin-bottom:8px" id="sms-char-count">0자</div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-sms-send')">취소</button>
+      <button class="btn" onclick="copySmsBody()" style="border-color:#2d7a5f;color:#2d7a5f">📋 복사</button>
+      <button class="btn pri" onclick="doSendSms()">📤 발송</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="ov-reg">
   <div class="modal">
     <h3>신규 학생 등록</h3>
@@ -1177,6 +1202,11 @@ function sw(name, el) {
   if (name === 'history') renderHist();
   if (name === 'members') renderMembers();
 }
+document.addEventListener('DOMContentLoaded', function(){
+  var sb = document.getElementById('sms-send-body');
+  if(sb) sb.addEventListener('input', updateSmsCharCount);
+});
+
 function openOv(id) { var el=document.getElementById(id); if(el) el.classList.add('on'); }
 function closeOv(id) { var el=document.getElementById(id); if(el) el.classList.remove('on'); }
 
@@ -1800,14 +1830,8 @@ function copyBookSms() {
 
 function deleteBook(i) {
   if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?')) return;
-  var id = BD[i].id;
-  if(id) {
-    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({getFirestore,doc,deleteDoc})=>{
-      deleteDoc(doc(getFirestore(),'books',id));
-    });
-  } else {
-    BD.splice(i,1); fb();
-  }
+  BD.splice(i, 1);
+  fb();
 }
 
 function copyBookSmsDirect(i) {
@@ -2597,7 +2621,7 @@ function saveVocabTotal(cls) {
 }
 
 var vcClsEl = document.getElementById('vc-cls'); if (vcClsEl) vcClsEl.addEventListener('change', updVocabStudents);
-['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move'].forEach(function(id) {
+['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move','ov-sms-send'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('click', function(e){
     if (e.target===this) closeOv(id);
@@ -3166,8 +3190,158 @@ function exportSchedule() {
   openOv('ov-sms');
   document.querySelector('#ov-sms h3').textContent = '📤 시간표 데이터 (복사해서 전달)';
 }
+
+// ── 알리고 SMS ──
+var ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
+
+function saveAligoSettings() {
+  ALIGO = {
+    user: document.getElementById('aligo-user').value.trim(),
+    key: document.getElementById('aligo-key').value.trim(),
+    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
+  // 저장 확인
+  var check = JSON.parse(localStorage.getItem('bomnal_aligo')||'{}');
+  var saved = document.getElementById('aligo-saved');
+  if(check.key) {
+    if(saved) { saved.textContent='✓ 저장됐어요! (Key: '+check.key.substr(0,6)+'***)'; saved.style.display='block'; setTimeout(function(){ saved.style.display='none'; }, 4000); }
+  } else {
+    alert('저장에 실패했어요. 크롬 설정에서 로컬 파일 localStorage가 허용되어 있는지 확인해주세요.');
+  }
+}
+
+function renderAligoSettings() {
+  // 항상 localStorage에서 최신값 읽기
+  ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
+  var u = document.getElementById('aligo-user'); if(u) u.value = ALIGO.user||'';
+  var k = document.getElementById('aligo-key'); if(k) k.value = ALIGO.key||'';
+  var s = document.getElementById('aligo-sender'); if(s) s.value = ALIGO.sender||'';
+}
+
+function getBookSmsText(r) {
+  var accountStr = ACCOUNT && ACCOUNT.number
+    ? ACCOUNT.bank+' '+ACCOUNT.number+' ('+ACCOUNT.holder+')'
+    : '계좌 미등록 (설정 탭에서 등록)';
+  var lines = [
+    r.name+' 학생 새 교재 주문 예정입니다.',
+    '',
+    '교재: '+r.book,
+    '결제금: '+(r.amount||0).toLocaleString()+'원',
+    '결제방식: '+(r.payType||'계좌이체'),
+    '결제계좌: '+accountStr,
+    '',
+    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.',
+    '감사합니다 :) 봄날 English'
+  ];
+  return lines.join('\n');
+}
+
+async function sendAligoSms(phone, msg) {
+  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender) {
+    alert('설정 탭에서 알리고 API 정보를 먼저 입력해주세요!');
+    return false;
+  }
+  if(!phone) { alert('전화번호가 없어요!'); return false; }
+  var formData = new FormData();
+  formData.append('key', ALIGO.key);
+  formData.append('user_id', ALIGO.user);
+  formData.append('sender', ALIGO.sender);
+  formData.append('receiver', phone.replace(/-/g,''));
+  formData.append('msg', msg);
+  formData.append('testmode_yn', 'N');
+  try {
+    var res = await fetch('https://apis.aligo.in/send/', {method:'POST', body:formData});
+    var data = await res.json();
+    if(data.result_code==='1') return true;
+    alert('발송 실패: '+(data.message||'오류'));
+    return false;
+  } catch(e) { alert('발송 오류: '+e.message); return false; }
+}
+
+function sendBookSms(i) {
+  var r = BD[i]; if(!r) return;
+  var student = TD.find(function(s){ return s.name===r.name; });
+  var phone = r.phone||(student&&student.phone)||'';
+  var msg = getBookSmsText(r);
+  openSmsSendModal(r.name, phone, msg);
+}
+
+function openSmsSendModal(name, phone, msg) {
+  document.getElementById('sms-recv-name').value = name||'';
+  document.getElementById('sms-recv-phone').value = phone||'';
+  document.getElementById('sms-send-body').value = msg||'';
+  updateSmsCharCount();
+  document.getElementById('sms-name-list').style.display='none';
+  openOv('ov-sms-send');
+}
+
+function smsNameSearch(q) {
+  var list = document.getElementById('sms-name-list');
+  if(!q.trim()) { list.style.display='none'; return; }
+  var matches = TD.filter(function(r){ return r.name.indexOf(q)>=0||(r.cls||'').indexOf(q)>=0; }).slice(0,8);
+  if(!matches.length) { list.style.display='none'; return; }
+  list.style.display='block';
+  list.innerHTML = matches.map(function(r){
+    return '<div class="bsl-item" data-name="'+r.name+'" data-phone="'+(r.phone||'')+'" style="padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0">'+
+      '<span style="font-weight:600">'+r.name+'</span> <span style="color:#aaa;font-size:12px">'+r.cls+'</span> <span style="color:#aaa;font-size:12px">'+(r.phone||'번호없음')+'</span></div>';
+  }).join('');
+  list.querySelectorAll('.bsl-item').forEach(function(el){
+    el.addEventListener('mousedown', function(){
+      document.getElementById('sms-recv-name').value = this.getAttribute('data-name');
+      document.getElementById('sms-recv-phone').value = this.getAttribute('data-phone');
+      list.style.display='none';
+    });
+    el.addEventListener('mouseover', function(){ this.style.background='#f5f5f5'; });
+    el.addEventListener('mouseout', function(){ this.style.background=''; });
+  });
+}
+
+function updateSmsCharCount() {
+  var body = document.getElementById('sms-send-body');
+  var count = document.getElementById('sms-char-count');
+  if(body && count) {
+    var len = body.value.length;
+    count.textContent = len+'자 '+(len>90?'(장문 LMS)':'(단문 SMS)');
+    count.style.color = len>90?'#e67e22':'#aaa';
+  }
+}
+
+function copySmsBody() {
+  var body = document.getElementById('sms-send-body').value;
+  document.getElementById('sms-content').value = body;
+  closeOv('ov-sms-send');
+  openOv('ov-sms');
+}
+
+async function doSendSms() {
+  var phone = document.getElementById('sms-recv-phone').value.trim().replace(/-/g,'');
+  var msg = document.getElementById('sms-send-body').value.trim();
+  var name = document.getElementById('sms-recv-name').value.trim();
+  if(!phone) { alert('전화번호를 입력해주세요'); return; }
+  if(!msg) { alert('문자 내용을 입력해주세요'); return; }
+  var ok = await sendAligoSms(phone, msg);
+  if(ok) {
+    alert('✓ '+(name||phone)+' 에게 문자가 발송됐어요!');
+    closeOv('ov-sms-send');
+  }
+}
+
+async function testAligoSms() {
+  ALIGO = {
+    user: document.getElementById('aligo-user').value.trim(),
+    key: document.getElementById('aligo-key').value.trim(),
+    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  var testPhone = prompt('테스트 발송할 전화번호:');
+  if(!testPhone) return;
+  var ok = await sendAligoSms(testPhone.replace(/-/g,''), '봄날 English 문자 테스트입니다 :)');
+  if(ok) alert('테스트 문자 발송됐어요! 확인해보세요 😊');
+}
+
 </script>
 </div><!-- app-screen -->
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
@@ -3186,7 +3360,6 @@ const fbApp = initializeApp({
 });
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
-
 let ME = null;
 
 const ROLE_TABS = {
@@ -3195,181 +3368,133 @@ const ROLE_TABS = {
   teacher:  ['notice','schedule','book','absent','vocab']
 };
 const TAB_LABELS = {
-  notice:'공지사항', schedule:'📅 시간표',
-  junior:'초중등부', senior:'고등부', members:'회원명부',
-  book:'교재비', summary:'현황 요약', absent:'결석예정자',
+  notice:'공지사항', schedule:'📅 시간표', junior:'초중등부', senior:'고등부',
+  members:'회원명부', book:'교재비', summary:'현황 요약', absent:'결석예정자',
   vocab:'단어시험', history:'이전 기록', withdrawn:'퇴원생', settings:'⚙ 설정'
 };
 
-// 로그인
 document.getElementById('li-btn').onclick = async function() {
   const email = document.getElementById('li-email').value.trim();
   const pw = document.getElementById('li-pw').value;
   document.getElementById('li-err').textContent = '';
-  if(!email||!pw){ document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요'; return; }
-  try {
-    this.textContent = '로그인 중...';
-    await signInWithEmailAndPassword(auth, email, pw);
-  } catch(e) {
-    document.getElementById('li-err').textContent = '이메일 또는 비밀번호가 올바르지 않아요';
-    this.textContent = '로그인';
-  }
+  if(!email||!pw){document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요';return;}
+  try { this.textContent='로그인 중...'; await signInWithEmailAndPassword(auth,email,pw); }
+  catch(e) { document.getElementById('li-err').textContent='이메일 또는 비밀번호가 올바르지 않아요'; this.textContent='로그인'; }
 };
-document.getElementById('li-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pw').focus(); });
-document.getElementById('li-pw').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-btn').click(); });
+document.getElementById('li-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('li-pw').focus();});
+document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('li-btn').click();});
 
 onAuthStateChanged(auth, async user => {
   if(user) {
     const snap = await getDoc(doc(db,'users',user.uid));
     ME = snap.exists() ? {uid:user.uid,...snap.data()} : {uid:user.uid,email:user.email,name:user.email.split('@')[0],role:'teacher'};
     if(!snap.exists()) await setDoc(doc(db,'users',user.uid),{name:ME.name,role:ME.role,email:user.email});
-    
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    
-    // 사용자 표시
-    const badge = document.getElementById('user-badge');
-    if(badge) { badge.textContent = ME.name; badge.style.display='inline-block'; }
-    
-    // 권한별 탭 구성
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    const badge=document.getElementById('user-badge');
+    if(badge){badge.textContent=ME.name;badge.style.display='inline-block';}
     buildTabsByRole();
-    
-    // 로그아웃
-    const logoutBtn = document.getElementById('btn-logout');
-    if(logoutBtn) { logoutBtn.style.display='inline-flex'; logoutBtn.onclick=()=>signOut(auth); }
-    
-    // 원장/실장만 다음달/신규등록
-    if(ME.role==='director'||ME.role==='manager') {
-      const bm=document.getElementById('btn-next-month'); if(bm) bm.style.display='inline-flex';
-      const bs=document.getElementById('btn-new-student'); if(bs) bs.style.display='inline-flex';
+    const logoutBtn=document.getElementById('btn-logout');
+    if(logoutBtn){logoutBtn.style.display='inline-flex';logoutBtn.onclick=()=>signOut(auth);}
+    if(ME.role==='director'||ME.role==='manager'){
+      const bm=document.getElementById('btn-next-month');if(bm)bm.style.display='inline-flex';
+      const bs=document.getElementById('btn-new-student');if(bs)bs.style.display='inline-flex';
     }
-    if(ME.role==='director') {
-      const bn=document.getElementById('btn-write-notice'); if(bn) bn.style.display='inline-flex';
-    }
-    
+    if(ME.role==='director'){const bn=document.getElementById('btn-write-notice');if(bn)bn.style.display='inline-flex';}
     subscribeFirestore();
     initStudentsIfEmpty();
   } else {
-    ME = null;
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
-    document.getElementById('li-btn').textContent = '로그인';
+    ME=null;
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('app-screen').style.display='none';
+    document.getElementById('li-btn').textContent='로그인';
   }
 });
 
 function buildTabsByRole() {
-  const tabs = ROLE_TABS[ME.role] || ROLE_TABS.teacher;
-  const tabsEl = document.querySelector('.tabs');
-  if(!tabsEl) return;
-  tabsEl.innerHTML = tabs.map((t,i) => {
-    const badge = (t==='history'||t==='withdrawn') ? `<span id="badge-${t}" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span>` : '';
+  const tabs=ROLE_TABS[ME.role]||ROLE_TABS.teacher;
+  const tabsEl=document.querySelector('.tabs');
+  if(!tabsEl)return;
+  tabsEl.innerHTML=tabs.map((t,i)=>{
+    const badge=(t==='history'||t==='withdrawn')?`<span id="badge-${t}" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span>`:'';
     return `<button class="tab${i===0?' on':''}" onclick="sw('${t}',this)">${TAB_LABELS[t]}${badge}</button>`;
   }).join('');
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
-  const first = document.getElementById('panel-'+tabs[0]);
-  if(first) first.classList.add('on');
+  const first=document.getElementById('panel-'+tabs[0]);
+  if(first)first.classList.add('on');
 }
 
 function subscribeFirestore() {
-  // 학생 실시간
-  onSnapshot(collection(db,'students'), snap => {
-    TD=[]; WD=[];
-    snap.forEach(d => { const s={id:d.id,...d.data()}; (s.withdrawn?WD:TD).push(s); });
+  onSnapshot(collection(db,'students'),snap=>{
+    TD=[];WD=[];
+    snap.forEach(d=>{const s={id:d.id,...d.data()};(s.withdrawn?WD:TD).push(s);});
     TD.sort((a,b)=>(a.cls||'').localeCompare(b.cls||''));
     TD_JUNIOR=TD.filter(r=>!r.level||r.level==='junior');
     TD_SENIOR=TD.filter(r=>r.level==='senior');
-    updCls('junior'); updCls('senior'); rt('junior'); rt('senior');
-    updStats('junior'); updStats('senior'); renderMembers(); renderVocab();
-    const wc=document.getElementById('wc'); if(wc) wc.textContent=WD.length;
+    updCls('junior');updCls('senior');rt('junior');rt('senior');
+    updStats('junior');updStats('senior');renderMembers();renderVocab();
+    const wc=document.getElementById('wc');if(wc)wc.textContent=WD.length;
+    const badge=document.getElementById('badge-withdrawn');if(badge)badge.textContent=WD.length;
   });
-  // 교재비
-  onSnapshot(collection(db,'books'), snap => {
-    BD=[];
-    snap.forEach(d=>BD.push({id:d.id,...d.data()}));
-    BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));
-    fb();
+  onSnapshot(collection(db,'books'),snap=>{
+    BD=[];snap.forEach(d=>BD.push({id:d.id,...d.data()}));
+    BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));fb();
   });
-  // 결석
-  onSnapshot(collection(db,'absent'), snap => {
-    ABSENT=[];
-    snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
-    ABSENT.sort((a,b)=>a.date>b.date?1:-1);
-    renderAbsent();
+  onSnapshot(collection(db,'absent'),snap=>{
+    ABSENT=[];snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
+    ABSENT.sort((a,b)=>a.date>b.date?1:-1);renderAbsent();
   });
-  // 단어시험
-  onSnapshot(doc(db,'vocab','data'), snap => {
-    if(snap.exists()){ const d=snap.data(); VOCAB_MONTHLY=d.monthly||{}; VOCAB_TOTALS=d.totals||{}; }
+  onSnapshot(doc(db,'vocab','data'),snap=>{
+    if(snap.exists()){const d=snap.data();VOCAB_MONTHLY=d.monthly||{};VOCAB_TOTALS=d.totals||{};}
     renderVocab();
   });
-  // 이전기록
-  onSnapshot(doc(db,'tuition','history'), snap => {
+  onSnapshot(doc(db,'tuition','history'),snap=>{
     TUITION_HIST=snap.exists()?(snap.data().list||[]):[];
-    const b=document.getElementById('badge-history'); if(b) b.textContent=TUITION_HIST.length;
+    const b=document.getElementById('badge-history');if(b)b.textContent=TUITION_HIST.length;
   });
-  // 공지
-  onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')), snap => {
-    NOTICES=[];
-    snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
-    renderNotices();
-    checkNoticePopup();
+  onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')),snap=>{
+    NOTICES=[];snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
+    renderNotices();checkNoticePopup();
   });
-  // 데스크 알림 구독
-  onSnapshot(
-    query(collection(db,'notifications'), orderBy('createdAt','desc')),
-    snap => {
-      snap.docChanges().forEach(change => {
-        if(change.type === 'added') {
-          const n = {id:change.doc.id, ...change.doc.data()};
-          // 데스크 역할이거나 원장/실장이면 알림 표시
-          const isDesk = ME && (ME.role==='director'||ME.role==='manager'||
-            (ME.name&&ME.name.includes('호영')));
-          if(isDesk && !(n.readBy||[]).includes(ME.uid)) {
-            // 방금 추가된 것만 (3초 이내)
-            const createdAt = n.createdAt && n.createdAt.toDate ? n.createdAt.toDate() : null;
-            const isRecent = !createdAt || (Date.now() - createdAt.getTime() < 10000);
-            if(isRecent) showBookNotification(n);
-          }
+  onSnapshot(doc(db,'schedule','data'),snap=>{
+    if(snap.exists()&&snap.data().schedule)Object.assign(SCHEDULE_DATA,snap.data().schedule);
+    else setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});
+    if(document.getElementById('schedule-area'))renderSchedule();
+  });
+  onSnapshot(query(collection(db,'notifications'),orderBy('createdAt','desc')),snap=>{
+    snap.docChanges().forEach(change=>{
+      if(change.type==='added'){
+        const n={id:change.doc.id,...change.doc.data()};
+        const isDesk=ME&&(ME.role==='director'||ME.role==='manager'||(ME.name&&ME.name.includes('호영')));
+        if(isDesk&&!(n.readBy||[]).includes(ME.uid)){
+          const createdAt=n.createdAt&&n.createdAt.toDate?n.createdAt.toDate():null;
+          const isRecent=!createdAt||(Date.now()-createdAt.getTime()<10000);
+          if(isRecent)showBookNotification(n);
         }
-      });
-    }
-  );
-
-  // 시간표
-  onSnapshot(doc(db,'schedule','data'), snap => {
-    if(snap.exists()&&snap.data().schedule) {
-      Object.assign(SCHEDULE_DATA, snap.data().schedule);
-    } else {
-      setDoc(doc(db,'schedule','data'), {schedule:SCHEDULE_DATA});
-    }
-    if(document.getElementById('schedule-area')) renderSchedule();
+      }
+    });
   });
 }
 
 async function initStudentsIfEmpty() {
-  const snap = await getDocs(collection(db,'students'));
-  if(snap.empty) {
-    for(const s of INITIAL_STUDENTS) await addDoc(collection(db,'students'), s);
-  }
+  const snap=await getDocs(collection(db,'students'));
+  if(snap.empty){for(const s of INITIAL_STUDENTS)await addDoc(collection(db,'students'),s);}
 }
 
 // Firestore 오버라이드
-window.togPaid = async function(id) {
-  const r=TD.find(s=>s.id===id); if(!r) return;
-  const mk=curKey(); const pm={...(r.paidMonths||{})}, pd={...(r.paidDates||{})};
+window.togPaid=async function(id){
+  const r=TD.find(s=>s.id===id);if(!r)return;
+  const mk=curKey();const pm={...(r.paidMonths||{})},pd={...(r.paidDates||{})};
   if(pm[mk]){delete pm[mk];delete pd[mk];}else{pm[mk]=true;pd[mk]=toISO();}
   await updateDoc(doc(db,'students',id),{paidMonths:pm,paidDates:pd});
 };
-window.setMethod = async function(id,m) {
-  await updateDoc(doc(db,'students',id),{method:m}); closeAllMpop();
-};
-window.withdraw = async function(id) {
-  if(!confirm('퇴원 처리할까요?')) return;
+window.setMethod=async function(id,m){await updateDoc(doc(db,'students',id),{method:m});closeAllMpop();};
+window.withdraw=async function(id){
+  if(!confirm('퇴원 처리할까요?'))return;
   await updateDoc(doc(db,'students',id),{withdrawn:true,withdrawDate:toISO()});
 };
-window.restore = async function(id) {
-  await updateDoc(doc(db,'students',id),{withdrawn:false,withdrawDate:''});
-};
-window.addStudent = async function() {
+window.restore=async function(id){await updateDoc(doc(db,'students',id),{withdrawn:false,withdrawDate:''});};
+window.addStudent=async function(){
   const name=document.getElementById('f-name').value.trim();
   const cls=document.getElementById('f-cls').value.trim();
   if(!name||!cls){alert('이름과 반은 필수입니다');return;}
@@ -3380,10 +3505,9 @@ window.addStudent = async function() {
     memo:document.getElementById('f-memo').value.trim(),
     isNew:true,withdrawn:false,paidMonths:{},paidDates:{},
     level:cls.includes('고')?'senior':'junior'
-  });
-  closeOv('ov-reg');
+  });closeOv('ov-reg');
 };
-window.saveEdit = async function() {
+window.saveEdit=async function(){
   const name=document.getElementById('e-name').value.trim();
   const cls=document.getElementById('e-cls').value.trim();
   if(!name||!cls){alert('이름과 반은 필수입니다');return;}
@@ -3394,116 +3518,171 @@ window.saveEdit = async function() {
     phone:document.getElementById('e-phone').value.trim(),
     sibling:document.getElementById('e-sib').value.trim(),
     memo:document.getElementById('e-memo').value.trim()
-  });
-  closeOv('ov-edit');
+  });closeOv('ov-edit');
 };
-window.pickDate = async function(iso) {
-  const r=TD[calIdx]; if(!r||!r.id) return;
-  const mk=curKey(); const pd={...(r.paidDates||{})}; pd[mk]=iso;
-  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
+window.pickDate=async function(iso){
+  const r=TD[calIdx];if(!r||!r.id)return;
+  const mk=curKey();const pd={...(r.paidDates||{})};pd[mk]=iso;
+  await updateDoc(doc(db,'students',r.id),{paidDates:pd});closeOv('ov-cal');
 };
-window.clearDate = async function() {
-  const r=TD[calIdx]; if(!r||!r.id) return;
-  const mk=curKey(); const pd={...(r.paidDates||{})}; delete pd[mk];
-  await updateDoc(doc(db,'students',r.id),{paidDates:pd}); closeOv('ov-cal');
+window.clearDate=async function(){
+  const r=TD[calIdx];if(!r||!r.id)return;
+  const mk=curKey();const pd={...(r.paidDates||{})};delete pd[mk];
+  await updateDoc(doc(db,'students',r.id),{paidDates:pd});closeOv('ov-cal');
 };
-window.addBook = async function() {
+window.addBook=async function(){
   const book=document.getElementById('b-book').value.trim();
   const inputName=document.getElementById('b-student-input').value.trim();
-  if(!bookSelectedStudents.length&&inputName) bookSelectedStudents.push({name:inputName,phone:''});
+  if(!bookSelectedStudents.length&&inputName)bookSelectedStudents.push({name:inputName,phone:''});
   if(!bookSelectedStudents.length||!book){alert('학생과 교재명은 필수입니다');return;}
   const manager=document.getElementById('b-manager').value;
   const amount=parseInt(document.getElementById('b-amount').value)||0;
-  for(const s of bookSelectedStudents) {
+  for(const s of bookSelectedStudents){
     await addDoc(collection(db,'books'),{
       name:s.name,phone:s.phone,book,amount,
       dateStr:document.getElementById('b-date').value,
       arrival:document.getElementById('b-arrival').value,
-      manager:manager,
-      payType:document.getElementById('b-pay-type').value,
+      manager,payType:document.getElementById('b-pay-type').value,
       memo:document.getElementById('b-memo').value.trim(),
       isPaid:false,paidDate:''
     });
   }
-  // 데스크 알림 저장
-  const studentNames = bookSelectedStudents.map(s=>s.name).join(', ');
+  const studentNames=bookSelectedStudents.map(s=>s.name).join(', ');
   await addDoc(collection(db,'notifications'),{
-    type:'book_order',
-    title:'📚 교재 주문 요청',
-    body: (ME.name||'선생님') + '이 교재를 추가했어요.\n' +
-          '학생: ' + studentNames + '\n' +
-          '교재: ' + book + '\n' +
-          (amount ? '금액: ' + amount.toLocaleString() + '원' : ''),
-    from: ME.name||'',
-    targetRole: 'desk',
-    readBy: [],
-    createdAt: serverTimestamp()
+    type:'book_order',title:'📚 교재 주문 요청',
+    body:(ME.name||'선생님')+'이 교재를 추가했어요.
+학생: '+studentNames+'
+교재: '+book+(amount?'
+금액: '+amount.toLocaleString()+'원':''),
+    from:ME.name||'',targetRole:'desk',readBy:[],createdAt:serverTimestamp()
   });
-  closeOv('ov-book');
-  alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
+  closeOv('ov-book');alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
 };
-window.togBook = async function(id) {
-  const r=BD.find(b=>b.id===id); if(!r) return;
+window.togBook=async function(id){
+  const r=BD.find(b=>b.id===id);if(!r)return;
   await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
 };
-window.addAbsent = async function() {
+window.deleteBook=async function(i){
+  if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?'))return;
+  const id=BD[i].id;
+  if(id)await deleteDoc(doc(db,'books',id));else{BD.splice(i,1);fb();}
+};
+window.addAbsent=async function(){
   const date=document.getElementById('ab-date').value;
   const sv=document.getElementById('ab-student').value;
   if(!date||!sv){alert('날짜와 학생을 선택해주세요');return;}
   const parts=sv.split('|');
-  await addDoc(collection(db,'absent'),{
-    date,name:parts[0],cls:parts[1]||'',
-    reason:document.getElementById('ab-reason').value,
-    memo:document.getElementById('ab-memo').value
-  });
+  await addDoc(collection(db,'absent'),{date,name:parts[0],cls:parts[1]||'',
+    reason:document.getElementById('ab-reason').value,memo:document.getElementById('ab-memo').value});
   closeOv('ov-absent');
 };
-window.delAbsent = async function(id,e) {
-  e.stopPropagation();
-  await deleteDoc(doc(db,'absent',id));
-};
-window.saveNotice = async function() {
+window.delAbsent=async function(id,e){e.stopPropagation();await deleteDoc(doc(db,'absent',id));};
+window.saveNotice=async function(){
   const title=document.getElementById('n-title').value.trim();
   const body=document.getElementById('n-body').value.trim();
   if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
   const allChecked=document.getElementById('n-all').checked;
   const targets=[];
-  if(allChecked) targets.push('전체');
+  if(allChecked)targets.push('전체');
   else document.querySelectorAll('.n-teacher:checked').forEach(cb=>targets.push(cb.value));
   if(!targets.length){alert('수신 대상을 선택해주세요');return;}
   await addDoc(collection(db,'notices'),{
     title,body,targets,authorUid:ME.uid,authorName:ME.name,
     readBy:[],readNames:[],createdAt:serverTimestamp()
-  });
-  closeOv('ov-notice');
+  });closeOv('ov-notice');
 };
-window.deleteNotice = async function(idx) {
-  if(!confirm('공지를 삭제할까요?')) return;
+window.deleteNotice=async function(idx){
+  if(!confirm('공지를 삭제할까요?'))return;
   await deleteDoc(doc(db,'notices',NOTICES[idx].id));
 };
-window.confirmAllNotices = async function() {
+window.confirmAllNotices=async function(){
   const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
-  for(const n of unread) await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
-  const p=document.getElementById('npopup'); if(p) p.remove();
+  for(const n of unread)await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
+  const p=document.getElementById('npopup');if(p)p.remove();
 };
-window.saveScheduleLocal = async function() {
-  try { await setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA}); } catch(e){}
+window.saveScheduleLocal=async function(){
+  try{await setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});}catch(e){}
 };
-window.doNextMonth = async function() {
+window.doNextMonth=async function(){
   const mk=curKey();
   const snapshot=TD.map(r=>({name:r.name,cls:r.cls||'',phone:r.phone||'',fee:r.fee||0,method:r.method||'',memo:r.memo||'',paid:!!(r.paidMonths||{})[mk],date:(r.paidDates||{})[mk]||''}));
   const existing=[...TUITION_HIST];
   existing.push({year:curYear,month:curMonth,label:`${curYear}년 ${curMonth}월`,students:snapshot});
   await setDoc(doc(db,'tuition','history'),{list:existing});
-  for(const r of TD) if(r.isNew) await updateDoc(doc(db,'students',r.id),{isNew:false});
+  for(const r of TD)if(r.isNew)await updateDoc(doc(db,'students',r.id),{isNew:false});
   if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
-  updHeader(); closeOv('ov-next'); alert('넘겼어요!');
+  updHeader();closeOv('ov-next');alert('넘겼어요!');
+};
+window.saveAligoSettings=function(){
+  ALIGO={
+    user:document.getElementById('aligo-user').value.trim(),
+    key:document.getElementById('aligo-key').value.trim(),
+    sender:document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  try{
+    localStorage.setItem('bomnal_aligo',JSON.stringify(ALIGO));
+    const check=JSON.parse(localStorage.getItem('bomnal_aligo')||'{}');
+    const saved=document.getElementById('aligo-saved');
+    if(saved){
+      saved.textContent=check.key?'✓ 저장됐어요! (Key: '+check.key.substr(0,4)+'***)':'저장 실패!';
+      saved.style.display='block';setTimeout(()=>saved.style.display='none',4000);
+    }
+  }catch(e){alert('저장 오류: '+e.message);}
+};
+window.testAligoSms=async function(){
+  ALIGO={
+    user:document.getElementById('aligo-user').value.trim(),
+    key:document.getElementById('aligo-key').value.trim(),
+    sender:document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
+  };
+  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender){alert('User ID, API Key, 발신번호를 모두 입력해주세요!');return;}
+  const testPhone=prompt('테스트 발송할 전화번호:');
+  if(!testPhone)return;
+  const ok=await sendAligoSms(testPhone.replace(/-/g,''),'봄날 English 문자 테스트입니다 :)');
+  if(ok)alert('테스트 문자 발송됐어요! 확인해보세요 😊');
+};
+window.renderAligoSettings=function(){
+  ALIGO=JSON.parse(localStorage.getItem('bomnal_aligo')||'{"user":"","key":"","sender":""}');
+  const u=document.getElementById('aligo-user');if(u)u.value=ALIGO.user||'';
+  const k=document.getElementById('aligo-key');if(k)k.value=ALIGO.key||'';
+  const s=document.getElementById('aligo-sender');if(s)s.value=ALIGO.sender||'';
 };
 
-function checkNoticePopup() {
-  if(!ME) return;
+function showBookNotification(n){
+  if(document.getElementById('notif-'+n.id))return;
+  const div=document.createElement('div');
+  div.id='notif-'+n.id;
+  div.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;background:#1a1916;color:#fff;border-radius:12px;padding:14px 16px;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideInRight .3s ease';
+  const nid=n.id;
+  div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
+    '<div><div style="font-size:13px;font-weight:700;margin-bottom:5px">'+n.title+'</div>'+
+    '<div style="font-size:12px;color:#ccc;white-space:pre-line;line-height:1.6">'+n.body+'</div></div>'+
+    '<button data-nid="'+nid+'" onclick="dismissNotif(this.dataset.nid)" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;flex-shrink:0">✕</button></div>'+
+    '<div style="margin-top:10px;display:flex;gap:6px">'+
+    '<button data-nid="'+nid+'" onclick="confirmBookNotif(this.dataset.nid)" style="flex:1;padding:5px;background:#2d7a5f;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✓ 확인</button>'+
+    '<button data-nid="'+nid+'" onclick="goToBook(this.dataset.nid)" style="flex:1;padding:5px;background:#1a5fa0;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">교재비 탭으로</button></div>';
+  document.body.appendChild(div);
+  setTimeout(()=>dismissNotif(nid),15000);
+}
+window.dismissNotif=function(id){
+  const el=document.getElementById('notif-'+id);
+  if(el){el.style.opacity='0';el.style.transform='translateX(20px)';el.style.transition='.2s';setTimeout(()=>el.remove(),200);}
+};
+window.confirmBookNotif=async function(id){
+  dismissNotif(id);
+  try{await updateDoc(doc(db,'notifications',id),{readBy:arrayUnion(ME.uid)});}catch(e){}
+};
+window.goToBook=function(id){
+  dismissNotif(id);confirmBookNotif(id);
+  const bookTab=[...document.querySelectorAll('.tab')].find(t=>t.textContent.includes('교재비'));
+  if(bookTab)bookTab.click();
+};
+window.showBookNotification=showBookNotification;
+
+function checkNoticePopup(){
+  if(!ME)return;
   const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
-  if(!unread.length||document.getElementById('npopup')) return;
+  if(!unread.length||document.getElementById('npopup'))return;
   const div=document.createElement('div');
   div.id='npopup';
   div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem';
@@ -3516,190 +3695,6 @@ function checkNoticePopup() {
   </div>`;
   document.body.appendChild(div);
 }
-
-// ── 교재 주문 알림 팝업 ──
-window.showBookNotification = function showBookNotification(n) {
-  // 이미 같은 알림 있으면 스킵
-  if(document.getElementById('notif-'+n.id)) return;
-
-  const div = document.createElement('div');
-  div.id = 'notif-'+n.id;
-  div.style.cssText = [
-    'position:fixed','bottom:20px','right:20px','z-index:9999',
-    'background:#1a1916','color:#fff','border-radius:12px',
-    'padding:14px 16px','min-width:260px','max-width:320px',
-    'box-shadow:0 8px 32px rgba(0,0,0,.3)',
-    'animation:slideInRight .3s ease',
-    'cursor:pointer'
-  ].join(';');
-
-  var nid = n.id;
-  div.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
-      '<div>' +
-        '<div style="font-size:13px;font-weight:700;margin-bottom:5px">' + n.title + '</div>' +
-        '<div style="font-size:12px;color:#ccc;white-space:pre-line;line-height:1.6">' + n.body + '</div>' +
-      '</div>' +
-      '<button data-nid="'+nid+'" onclick="dismissNotif(this.dataset.nid)" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;flex-shrink:0;margin-top:-2px">✕</button>' +
-    '</div>' +
-    '<div style="margin-top:10px;display:flex;gap:6px">' +
-      '<button data-nid="'+nid+'" onclick="confirmBookNotif(this.dataset.nid)" style="flex:1;padding:5px;background:#2d7a5f;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✓ 확인</button>' +
-      '<button data-nid="'+nid+'" onclick="goToBook(this.dataset.nid)" style="flex:1;padding:5px;background:#1a5fa0;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">교재비 탭으로</button>' +
-    '</div>';
-
-  document.body.appendChild(div);
-
-  // 15초 후 자동 제거
-  setTimeout(function() { dismissNotif(n.id); }, 15000);
-}
-
-window.dismissNotif = function dismissNotif(id) {
-  const el = document.getElementById('notif-'+id);
-  if(el) { el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='.2s'; setTimeout(()=>el.remove(),200); }
-}
-
-window.confirmBookNotif = async function confirmBookNotif(id) {
-  dismissNotif(id);
-  try { await updateDoc(doc(db,'notifications',id),{readBy:arrayUnion(ME.uid)}); } catch(e){}
-}
-
-window.goToBook = function goToBook(id) {
-  dismissNotif(id);
-  confirmBookNotif(id);
-  // 교재비 탭으로 이동
-  const bookTab = [...document.querySelectorAll('.tab')].find(t=>t.textContent.includes('교재비'));
-  if(bookTab) bookTab.click();
-}
-
-// ── 알리고 SMS ──
-var ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
-
-window.saveAligoSettings = function saveAligoSettings() {
-  ALIGO = {
-    user: document.getElementById('aligo-user').value.trim(),
-    key: document.getElementById('aligo-key').value.trim(),
-    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  try {
-    localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
-    var check = JSON.parse(localStorage.getItem('bomnal_aligo')||'{}');
-    var saved = document.getElementById('aligo-saved');
-    if(saved) {
-      saved.textContent = check.key ? '✓ 저장됐어요! (Key: '+check.key.substr(0,4)+'***)' : '저장 실패!';
-      saved.style.display='block';
-      setTimeout(function(){ saved.style.display='none'; }, 4000);
-    }
-  } catch(e) { alert('저장 오류: '+e.message); }
-  var saved = document.getElementById('aligo-saved');
-  if(saved) { saved.style.display='block'; setTimeout(function(){ saved.style.display='none'; }, 2000); }
-}
-
-window.renderAligoSettings = function renderAligoSettings() {
-  var u = document.getElementById('aligo-user');
-  var k = document.getElementById('aligo-key');
-  var s = document.getElementById('aligo-sender');
-  if(u) u.value = ALIGO.user || '';
-  if(k) k.value = ALIGO.key || '';
-  if(s) s.value = ALIGO.sender || '';
-}
-
-function getBookSmsText(r) {
-  var accountStr = ACCOUNT && ACCOUNT.number
-    ? ACCOUNT.bank + ' ' + ACCOUNT.number + ' (' + ACCOUNT.holder + ')'
-    : '계좌 미등록 (설정 탭에서 등록)';
-  var lines = [
-    r.name + ' 학생 새 교재 주문 예정입니다.',
-    '',
-    '교재: ' + r.book,
-    '결제금: ' + (r.amount||0).toLocaleString() + '원',
-    '결제방식: ' + (r.payType||'계좌이체'),
-    '결제계좌: ' + accountStr,
-    '',
-    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.',
-    '감사합니다 :) 봄날 English'
-  ];
-  return lines.join('\n');
-}
-
-window.sendAligoSms = async function sendAligoSms(phone, msg) {
-  if(!ALIGO.user || !ALIGO.key || !ALIGO.sender) {
-    alert('설정 탭에서 알리고 API 정보를 먼저 입력해주세요!');
-    return false;
-  }
-  if(!phone) {
-    alert('전화번호가 없어요! 학생 정보에서 전화번호를 먼저 입력해주세요.');
-    return false;
-  }
-
-  var formData = new FormData();
-  formData.append('key', ALIGO.key);
-  formData.append('user_id', ALIGO.user);
-  formData.append('sender', ALIGO.sender);
-  formData.append('receiver', phone.replace(/-/g,''));
-  formData.append('msg', msg);
-  formData.append('testmode_yn', 'N'); // 실제 발송 (테스트: Y)
-
-  try {
-    var res = await fetch('https://apis.aligo.in/send/', {
-      method: 'POST',
-      body: formData
-    });
-    var data = await res.json();
-    if(data.result_code === '1') {
-      return true;
-    } else {
-      alert('발송 실패: ' + (data.message||'알 수 없는 오류'));
-      return false;
-    }
-  } catch(e) {
-    alert('발송 오류: ' + e.message);
-    return false;
-  }
-}
-
-window.sendBookSms = async function sendBookSms(i) {
-  var r = BD[i];
-  if(!r) return;
-
-  // 학생 전화번호 찾기
-  var student = TD.find(function(s){ return s.name === r.name; });
-  var phone = r.phone || (student && student.phone) || '';
-
-  if(!phone) {
-    alert(r.name + ' 학생 전화번호가 없어요!
-수업료 탭에서 전화번호를 먼저 입력해주세요.');
-    return;
-  }
-
-  var msg = getBookSmsText(r);
-
-  // 미리보기
-  var confirm_msg = '아래 내용을 ' + phone + ' 로 발송할까요?
-
-' + msg;
-  if(!confirm(confirm_msg)) return;
-
-  var ok = await sendAligoSms(phone, msg);
-  if(ok) {
-    alert('✓ ' + r.name + ' 학생 보호자에게 문자가 발송됐어요!');
-    // 문자 발송일 기록
-    BD[i].smsSent = toISO();
-    fb();
-  }
-}
-
-window.testAligoSms = async function testAligoSms() {
-  ALIGO = {
-    user: document.getElementById('aligo-user').value.trim(),
-    key: document.getElementById('aligo-key').value.trim(),
-    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  var testPhone = prompt('테스트 발송할 전화번호를 입력해주세요:');
-  if(!testPhone) return;
-  var ok = await sendAligoSms(testPhone.replace(/-/g,''), '봄날 English 문자 테스트입니다 :)');
-  if(ok) alert('테스트 문자가 발송됐어요! 확인해보세요 😊');
-}
-
 </script>
 </body>
 </html>
