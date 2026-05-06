@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봄날 English 관리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--surface:#fff;--surface2:#f2f1ed;
+  --border:#e8e6e0;--border2:#d4d0c8;
+  --text:#1a1916;--text2:#6b6860;--text3:#9c9890;
+  --green:#2d7a5f;--green-bg:#e8f5ef;
+  --red:#c0392b;--red-bg:#fdecea;
+  --blue:#1a5fa0;--blue-bg:#e8f0fb;
+  --amber:#a06010;--amber-bg:#fef5e7;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* 로그인 */
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.07)}
+.login-logo{text-align:center;margin-bottom:2rem}
+.login-logo .lt{font-size:24px;font-weight:700;color:var(--text)}
+.login-logo .ls{font-size:13px;color:var(--text2);margin-top:4px}
+.frow{margin-bottom:14px}
+.frow label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.frow input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border-color .15s}
+.frow input:focus{border-color:var(--blue)}
+.login-btn{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+.login-btn:hover{opacity:.85}
+.login-err{font-size:12px;color:var(--red);margin-top:10px;text-align:center;min-height:18px}
+
+/* 앱 */
+#app-screen{display:none;min-height:100vh;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.app-title{font-size:16px;font-weight:700}
+.month-nav{display:flex;align-items:center;gap:6px}
+.mnav-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 10px;font-size:18px;cursor:pointer;color:var(--text2);line-height:1}
+.mnav-btn:hover{background:var(--surface2)}
+.month-label{font-size:14px;font-weight:600;min-width:85px;text-align:center}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.user-badge{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border-radius:20px;font-size:12px;font-weight:500}
+.role-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.role-dot.director{background:#e85d04}.role-dot.manager{background:var(--green)}.role-dot.teacher{background:var(--blue)}
+.btn{padding:7px 13px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--text);color:#fff;border-color:transparent}.btn.pri:hover{opacity:.85}
+.btn.grn{background:var(--green);color:#fff;border-color:transparent}.btn.grn:hover{opacity:.85}
+.btn.red{border-color:var(--red);color:var(--red)}.btn.red:hover{background:var(--red-bg)}
+.btn.sm{padding:4px 9px;font-size:12px}
+
+/* 탭 */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);background:var(--surface);padding:.6rem 1.25rem 0;flex-wrap:wrap}
+.tab{padding:8px 15px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2.5px solid transparent;margin-bottom:-1px;font-weight:500}
+.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:700}
+.tab:hover:not(.on){color:var(--text)}
+.tbadge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--surface2);border-radius:10px;font-size:10px;font-weight:700;padding:0 5px;margin-left:5px;color:var(--text2)}
+.tab.on .tbadge{background:var(--text);color:#fff}
+
+/* 콘텐츠 */
+.content{flex:1;padding:1.25rem;max-width:1200px;margin:0 auto;width:100%}
+.panel{display:none}.panel.on{display:block}
+
+/* 통계 */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.slabel{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sval{font-size:22px;font-weight:700}
+.sval.g{color:var(--green)}.sval.r{color:var(--red)}.sval.b{color:var(--blue)}
+.pbar{width:100%;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:1.25rem}
+.pfill{height:100%;background:var(--green);border-radius:3px;transition:width .4s}
+
+/* 테이블 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px;font-size:11px;font-weight:700;color:var(--text3);border-bottom:1.5px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+td{padding:8px;border-bottom:1px solid var(--border2);vertical-align:middle}
+tr:hover td{background:var(--surface2)}
+.ck{width:27px;height:27px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.ck.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.paid{background:var(--green-bg);color:var(--green)}.badge.unpaid{background:var(--red-bg);color:var(--red)}
+.mb{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;align-items:center;gap:2px}
+.mb.M입금{background:var(--blue-bg);color:var(--blue)}.mb.M결제선생{background:#eeedfe;color:#4a3ab5}.mb.M현장카드{background:var(--amber-bg);color:var(--amber)}
+.dbtn{display:inline-flex;align-items:center;padding:3px 8px;border-radius:5px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text2);white-space:nowrap}
+.dbtn.set{color:var(--text);border-color:var(--border2);font-weight:500}
+.dbtn:hover{background:var(--surface2)}
+.new-tag{display:inline-block;font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700}
+.empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--surface)}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--blue)}
+
+/* 결제방식 드롭다운 */
+.mpop-wrap{position:relative;display:inline-block}
+.mpop{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:0 6px 24px rgba(0,0,0,.1);min-width:110px}
+.mpop.on{display:block}
+.mpop button{display:block;width:100%;padding:7px 10px;text-align:left;font-size:13px;font-weight:600;border:none;background:none;border-radius:5px;cursor:pointer}
+.mpop button:hover{background:var(--surface2)}
+.mpop .o입금{color:var(--blue)}.mpop .o결제선생{color:#4a3ab5}.mpop .o현장카드{color:var(--amber)}
+
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:1.5rem;width:460px;max-width:95vw;box-shadow:0 12px 48px rgba(0,0,0,.18)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:1.25rem}
+.frow2{margin-bottom:12px}
+.frow2 label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.frow2 input,.frow2 select,.frow2 textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--surface);font-family:inherit}
+.frow2 input:focus,.frow2 select:focus,.frow2 textarea:focus{border-color:var(--blue)}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem}
+.msel{display:flex;gap:6px}
+.mopt{flex:1;padding:9px 4px;text-align:center;font-size:13px;font-weight:500;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;color:var(--text2);background:var(--surface)}
+.mopt.S입금{background:var(--blue-bg);color:var(--blue);border-color:#7aa3e0;font-weight:700}
+.mopt.S결제선생{background:#eeecfd;color:#4a3ab5;border-color:#a79ee0;font-weight:700}
+.mopt.S현장카드{background:var(--amber-bg);color:var(--amber);border-color:#f0c070;font-weight:700}
+
+/* 달력 */
+.cal-box{background:var(--surface);border-radius:14px;padding:1.25rem;width:290px;box-shadow:0 12px 48px rgba(0,0,0,.18)}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav2{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:2px 8px;border-radius:5px;line-height:1}
+.cal-nav2:hover{background:var(--surface2)}
+.cal-title2{font-size:14px;font-weight:700}
+.cal-grid2{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cn2{text-align:center;font-size:11px;color:var(--text3);padding:4px 0;font-weight:600}
+.cd2{text-align:center;font-size:12px;padding:6px 2px;border-radius:5px;cursor:pointer;color:var(--text)}
+.cd2:hover{background:var(--surface2)}
+.cd2.today2{font-weight:700;color:var(--blue)}
+.cd2.sel2{background:var(--text);color:#fff;border-radius:50%}
+.cd2.emp2{cursor:default}.cd2.emp2:hover{background:none}
+.cal-foot{display:flex;justify-content:space-between;margin-top:12px;gap:8px}
+
+/* 공지사항 */
+.notice-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.notice-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.notice-meta{font-size:12px;color:var(--text3);margin-bottom:.75rem}
+.notice-body{font-size:13px;line-height:1.7;white-space:pre-wrap;margin-bottom:.75rem}
+.notice-reads{display:flex;flex-wrap:wrap;gap:6px;padding-top:.75rem;border-top:1px solid var(--border2)}
+.rchip{display:inline-flex;align-items:center;padding:2px 9px;background:var(--green-bg);color:var(--green);border-radius:20px;font-size:11px;font-weight:600}
+.uchip{display:inline-flex;align-items:center;padding:2px 9px;background:var(--surface2);color:var(--text3);border-radius:20px;font-size:11px}
+.confirm-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-top:.75rem}
+.confirm-btn:hover{opacity:.85}
+.confirm-btn.done{background:var(--green-bg);color:var(--green);cursor:default;opacity:1}
+
+/* 공지 팝업 */
+.npopup{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem}
+.npopup-box{background:var(--surface);border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 16px 64px rgba(0,0,0,.2)}
+.npopup-hdr{background:var(--text);color:#fff;padding:1rem 1.25rem;font-size:16px;font-weight:700}
+.npopup-body{padding:1.5rem;max-height:55vh;overflow-y:auto}
+.npopup-item{background:var(--surface2);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem}
+.npopup-item:last-child{margin-bottom:0}
+.npopup-item-title{font-size:14px;font-weight:700;margin-bottom:.5rem}
+.npopup-item-body{font-size:13px;line-height:1.7;white-space:pre-wrap}
+.npopup-foot{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+
+/* 결석 달력 */
+.abs-layout{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:start}
+.abs-grid2{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.abs-dn{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:6px 0;background:var(--surface2);border-radius:5px}
+.abs-cell2{min-height:72px;border:1px solid var(--border);border-radius:7px;padding:5px;background:var(--surface);cursor:pointer;overflow:hidden;transition:background .1s}
+.abs-cell2:hover{background:var(--surface2)}
+.abs-cell2.today2{border-color:var(--blue);background:#f0f7ff}
+.abs-cell2.other2{opacity:.35;pointer-events:none;background:var(--surface2)}
+.abs-date2{font-size:11px;font-weight:700;margin-bottom:3px}
+.abs-date2.sun2{color:var(--red)}.abs-date2.sat2{color:var(--blue)}.abs-date2.tod2{color:var(--blue)}
+.abs-tag2{display:flex;align-items:center;gap:2px;background:var(--red-bg);color:var(--red);border-radius:3px;padding:2px 5px;font-size:10px;font-weight:700;margin:1px 0;cursor:pointer;position:relative;overflow:hidden;white-space:nowrap}
+.abs-tag2:hover{background:#f5b8b8}
+.abs-tag2 .ax{background:none;border:none;cursor:pointer;color:var(--red);font-size:10px;padding:0;flex-shrink:0;margin-left:auto}
+.abs-tt{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:var(--text);color:#fff;border-radius:7px;padding:8px 11px;font-size:11px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:130px}
+.abs-tag2:hover .abs-tt{display:block}
+.abs-side2{display:flex;flex-direction:column;gap:10px;position:sticky;top:80px}
+.abs-sbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.abs-stitle{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.abs-sitem{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)}
+.abs-sitem:last-child{border-bottom:none;padding-bottom:0}
+.abs-sdate{font-size:10px;color:var(--text3);white-space:nowrap;min-width:32px;padding-top:2px}
+.abs-sname{font-size:13px;font-weight:600}
+.abs-sreason{font-size:11px;color:var(--text3);margin-top:1px}
+.abs-sdel{background:none;border:none;cursor:pointer;color:var(--border);font-size:12px;margin-left:auto;padding:0;flex-shrink:0}
+.abs-sdel:hover{color:var(--red)}
+.abs-sempty{font-size:12px;color:var(--text3);text-align:center;padding:8px 0}
+
+/* 단어시험 */
+.vocab-table{width:100%;border-collapse:collapse;font-size:12px}
+.vocab-table th{padding:6px 7px;background:var(--surface2);border:1px solid var(--border);text-align:center;font-weight:700;color:var(--text2);white-space:nowrap;font-size:11px}
+.vocab-table th.nth{text-align:left;min-width:70px;position:sticky;left:0;z-index:2}
+.vocab-table td{padding:5px 7px;border:1px solid var(--border);text-align:center}
+.vocab-table td.ntd{text-align:left;font-weight:700;background:var(--surface2);white-space:nowrap;position:sticky;left:0;z-index:1}
+.vocab-table td.atd{background:var(--green-bg);font-weight:700;color:var(--green)}
+.vocab-table td.abtd{color:var(--red);font-style:italic;font-size:11px}
+.sc2{cursor:pointer}.sc2:hover{background:#e8f4ff}
+.sc2.ed2{padding:0!important;background:#fff!important}
+.sc2.ed2 input{width:100%;min-height:26px;border:2px solid var(--blue);border-radius:3px;text-align:center;font-size:12px;font-weight:600;padding:2px 3px;outline:none;background:#fff}
+
+/* 이전기록 칩 */
+.mchip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text2)}
+.mchip.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* 스피너 */
+.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-wrap{display:flex;align-items:center;justify-content:center;padding:3rem;gap:10px;color:var(--text3);font-size:13px}
+
+@media(max-width:768px){.sgrid{grid-template-columns:repeat(2,1fr)}.abs-layout{grid-template-columns:1fr}.abs-side2{display:none}}
+@media print{body>*{display:none!important}#print-area{display:block!important}}
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="lt">🌸 봄날 English</div>
+      <div class="ls">관리자 시스템</div>
+    </div>
+    <div class="frow"><label>이메일</label><input type="email" id="li-email" placeholder="teacher@bomnal.com" autocomplete="email"></div>
+    <div class="frow"><label>비밀번호</label><input type="password" id="li-pw" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="login-btn" id="li-btn">로그인</button>
+    <div class="login-err" id="li-err"></div>
+  </div>
+</div>
+
+<!-- 앱 -->
+<div id="app-screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="app-title">🌸 봄날 English</div>
+      <div class="month-nav">
+        <button class="mnav-btn" id="btn-prev-month">‹</button>
+        <span class="month-label" id="month-label"></span>
+        <button class="mnav-btn" id="btn-next-month-nav">›</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-badge"><div class="role-dot" id="role-dot"></div><span id="user-disp"></span></div>
+      <button class="btn sm" id="btn-next-month" style="display:none" onclick="openNextMonth()">다음달 →</button>
+      <button class="btn sm pri" id="btn-new-student" style="display:none" onclick="openReg()">+ 신규 등록</button>
+      <button class="btn sm" id="btn-logout">로그아웃</button>
+    </div>
+  </div>
+  <div class="tabs" id="main-tabs"></div>
+  <div class="content">
+    <!-- 공지사항 -->
+    <div class="panel" id="panel-notice">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:700">공지사항</div>
+        <button class="btn grn" id="btn-write-notice" style="display:none" onclick="openWriteNotice()">+ 공지 작성</button>
+      </div>
+      <div id="notice-list"><div class="loading-wrap"><div class="spinner"></div> 불러오는 중...</div></div>
+    </div>
+    <!-- 초중등부 -->
+    <div class="panel" id="panel-junior">
+      <div class="sgrid">
+        <div class="scard"><div class="slabel">재원생</div><div class="sval" id="st-j">-</div></div>
+        <div class="scard"><div class="slabel">납부 완료</div><div class="sval g" id="sp-j">-</div></div>
+        <div class="scard"><div class="slabel">미납</div><div class="sval r" id="su-j">-</div></div>
+        <div class="scard"><div class="slabel">수납 총액</div><div class="sval" id="sa-j" style="font-size:16px">-</div></div>
+      </div>
+      <div class="pbar"><div class="pfill" id="pf-j" style="width:0%"></div></div>
+      <div class="toolbar">
+        <input type="text" placeholder="이름 검색..." id="q-name-j" oninput="rt('junior')" style="max-width:180px;flex:1">
+        <select id="q-status-j" onchange="rt('junior')"><option value="">전체</option><option>납부</option><option>미납</option></select>
+        <select id="q-cls-j" onchange="rt('junior')"><option value="">전체 반</option></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="min-width:680px">
+          <colgroup>
+            <col style="width:40px"><col style="width:88px"><col style="width:68px"><col style="width:102px">
+            <col style="width:78px"><col style="width:96px"><col style="width:88px"><col style="width:54px"><col><col style="width:46px"><col style="width:46px">
+          </colgroup>
+          <thead><tr><th>납부</th><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th><th>수정</th><th>퇴원</th></tr></thead>
+          <tbody id="tb-j"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 고등부 -->
+    <div class="panel" id="panel-senior">
+      <div class="sgrid">
+        <div class="scard"><div class="slabel">재원생</div><div class="sval" id="st-s">-</div></div>
+        <div class="scard"><div class="slabel">납부 완료</div><div class="sval g" id="sp-s">-</div></div>
+        <div class="scard"><div class="slabel">미납</div><div class="sval r" id="su-s">-</div></div>
+        <div class="scard"><div class="slabel">수납 총액</div><div class="sval" id="sa-s" style="font-size:16px">-</div></div>
+      </div>
+      <div class="pbar"><div class="pfill" id="pf-s" style="width:0%"></div></div>
+      <div class="toolbar">
+        <input type="text" placeholder="이름 검색..." id="q-name-s" oninput="rt('senior')" style="max-width:180px;flex:1">
+        <select id="q-status-s" onchange="rt('senior')"><option value="">전체</option><option>납부</option><option>미납</option></select>
+        <select id="q-cls-s" onchange="rt('senior')"><option value="">전체 반</option></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="min-width:680px">
+          <colgroup>
+            <col style="width:40px"><col style="width:88px"><col style="width:68px"><col style="width:102px">
+            <col style="width:78px"><col style="width:96px"><col style="width:88px"><col style="width:54px"><col><col style="width:46px"><col style="width:46px">
+          </colgroup>
+          <thead><tr><th>납부</th><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th><th>수정</th><th>퇴원</th></tr></thead>
+          <tbody id="tb-s"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 회원명부 -->
+    <div class="panel" id="panel-members">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+        <div style="font-size:13px;color:var(--text2)">전체 재원생 · 이름 클릭하면 수정</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="m-search" placeholder="이름 검색..." oninput="renderMembers()" style="width:150px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;outline:none">
+          <select id="m-cls" onchange="renderMembers()" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);outline:none"><option value="">전체 반</option></select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <colgroup><col style="width:36px"><col style="width:100px"><col style="width:80px"><col><col style="width:46px"></colgroup>
+          <thead><tr><th>#</th><th>반</th><th>이름</th><th>연락처</th><th>수정</th></tr></thead>
+          <tbody id="tb-members"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:.75rem;font-size:12px;color:var(--text3)" id="members-count"></div>
+    </div>
+    <!-- 교재비 -->
+    <div class="panel" id="panel-book">
+      <div style="margin-bottom:1rem;display:flex;justify-content:flex-end">
+        <button class="btn pri" onclick="openBookAdd()">+ 교재 추가</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" placeholder="이름/교재 검색..." id="q-book" oninput="fb()" style="max-width:200px;flex:1">
+        <select id="q-book-s" onchange="fb()"><option value="">전체</option><option>입금</option><option>미입금</option></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="min-width:560px">
+          <colgroup><col style="width:40px"><col style="width:68px"><col style="width:68px"><col><col style="width:72px"><col style="width:62px"><col style="width:72px"><col style="width:62px"></colgroup>
+          <thead><tr><th>입금</th><th>문자</th><th>이름</th><th>교재</th><th>금액</th><th>입고일</th><th>결제일</th><th>담당</th></tr></thead>
+          <tbody id="tb-b"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 현황 요약 -->
+    <div class="panel" id="panel-summary">
+      <div class="sgrid" style="grid-template-columns:1fr 1fr">
+        <div class="scard">
+          <div class="slabel">수업료 납부율</div>
+          <div class="sval g" id="sum-rate">0%</div>
+          <div class="pbar" style="margin-top:8px;margin-bottom:0"><div class="pfill" id="sum-bar" style="width:0%"></div></div>
+        </div>
+        <div class="scard"><div class="slabel">이번달 신규</div><div class="sval b" id="sum-new">0명</div></div>
+      </div>
+      <div style="margin-top:1.5rem">
+        <div style="font-size:14px;font-weight:700;margin-bottom:1rem">미납자 목록</div>
+        <table><thead><tr><th>이름</th><th>반</th><th>수업료</th><th>메모</th></tr></thead><tbody id="tb-u"></tbody></table>
+      </div>
+    </div>
+    <!-- 결석예정자 -->
+    <div class="panel" id="panel-absent">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="mnav-btn" onclick="abMove(-1)">‹</button>
+          <span style="font-size:15px;font-weight:700" id="ab-title"></span>
+          <button class="mnav-btn" onclick="abMove(1)">›</button>
+        </div>
+        <button class="btn pri" onclick="openAbsentAdd()">+ 결석 예정 추가</button>
+      </div>
+      <div class="abs-layout">
+        <div id="absent-cal"></div>
+        <div class="abs-side2">
+          <div class="abs-sbox"><div class="abs-stitle">오늘 결석</div><div id="side-today"></div></div>
+          <div class="abs-sbox"><div class="abs-stitle">이번 주 결석</div><div id="side-week"></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- 단어시험 -->
+    <div class="panel" id="panel-vocab">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="mnav-btn" onclick="vocabMove(-1)">‹</button>
+          <span style="font-size:15px;font-weight:700" id="vocab-title"></span>
+          <button class="mnav-btn" onclick="vocabMove(1)">›</button>
+        </div>
+        <button class="btn" onclick="openVocabSettings()">⚙ 총점 설정</button>
+      </div>
+      <div id="vocab-hist-chips" style="margin-bottom:1rem;display:none;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="font-size:12px;color:var(--text3)">이전 기록: </span>
+        <div id="vocab-hist-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div id="vocab-area"><div class="loading-wrap"><div class="spinner"></div> 불러오는 중...</div></div>
+    </div>
+    <!-- 이전 기록 -->
+    <div class="panel" id="panel-history">
+      <div id="hist-empty" class="empty">아직 이전 달 기록이 없어요.<br>다음 달로 넘기면 자동 저장돼요.</div>
+      <div id="hist-content" style="display:none">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem" id="hist-chips"></div>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem;display:flex;gap:1.5rem;flex-wrap:wrap" id="hist-stat"></div>
+        <div style="overflow-x:auto">
+          <table style="min-width:520px">
+            <colgroup><col style="width:88px"><col style="width:68px"><col style="width:100px"><col style="width:78px"><col style="width:96px"><col style="width:88px"><col style="width:56px"><col></colgroup>
+            <thead><tr><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th></tr></thead>
+            <tbody id="tb-hist"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- 퇴원생 -->
+    <div class="panel" id="panel-withdrawn">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div style="font-size:13px;color:var(--text2)">퇴원 처리된 학생 목록</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn sm" onclick="downloadCSV()">CSV 다운로드</button>
+          <button class="btn sm pri" onclick="doPrint()">인쇄하기</button>
+        </div>
+      </div>
+      <table>
+        <colgroup><col style="width:88px"><col style="width:68px"><col style="width:108px"><col style="width:80px"><col style="width:80px"><col><col style="width:56px"></colgroup>
+        <thead><tr><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>퇴원일</th><th>메모</th><th>복귀</th></tr></thead>
+        <tbody id="tb-w"></tbody>
+      </table>
+      <div id="w-empty" class="empty">퇴원한 학생이 없어요</div>
+    </div>
+  </div>
+</div>
+
+<!-- 인쇄 -->
+<div id="print-area" style="display:none;padding:2rem">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;border-bottom:2px solid #000;padding-bottom:.75rem">
+    <div><div style="font-size:20px;font-weight:700">봄날 English — 퇴원생 명부</div><div style="font-size:13px;color:#555;margin-top:4px" id="print-date"></div></div>
+    <div style="font-size:13px">총 <span id="print-count">0</span>명</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:#f5f5f5">
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">번호</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">반</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">이름</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">연락처</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">수업료</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">퇴원일</th>
+    </tr></thead>
+    <tbody id="print-tbody"></tbody>
+  </table>
+  <div style="margin-top:3rem;display:flex;justify-content:flex-end;gap:4rem">
+    <div style="font-size:13px">원장 확인: _______________</div>
+    <div style="font-size:13px">날짜: _______________</div>
+  </div>
+</div>
+
+<!-- 모달: 신규 등록 -->
+<div class="modal-bg" id="ov-reg">
+  <div class="modal">
+    <h3>신규 학생 등록</h3>
+    <div class="fgrid2">
+      <div class="frow2"><label>이름 *</label><input type="text" id="f-name" placeholder="홍길동"></div>
+      <div class="frow2"><label>반 *</label><input type="text" id="f-cls" placeholder="종촌중3A"></div>
+      <div class="frow2"><label>부모님 연락처</label><input type="text" id="f-phone" placeholder="010-0000-0000"></div>
+      <div class="frow2"><label>수업료</label><input type="number" id="f-fee" placeholder="270000"></div>
+    </div>
+    <div class="frow2"><label>결제방식</label>
+      <div class="msel" id="msel-reg">
+        <button class="mopt" data-m="입금">입금</button>
+        <button class="mopt" data-m="결제선생">결제선생</button>
+        <button class="mopt" data-m="현장카드">현장카드</button>
+      </div>
+    </div>
+    <div class="fgrid2">
+      <div class="frow2"><label>형제</label><input type="text" id="f-sib" placeholder="형제 이름"></div>
+      <div class="frow2"><label>메모</label><input type="text" id="f-memo" placeholder="교과할인 등"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-reg')">취소</button>
+      <button class="btn pri" onclick="addStudent()">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 학생 수정 -->
+<div class="modal-bg" id="ov-edit">
+  <div class="modal">
+    <h3>학생 정보 수정</h3>
+    <div class="fgrid2">
+      <div class="frow2"><label>이름 *</label><input type="text" id="e-name"></div>
+      <div class="frow2"><label>반 *</label><input type="text" id="e-cls"></div>
+      <div class="frow2"><label>부모님 연락처</label><input type="text" id="e-phone"></div>
+      <div class="frow2"><label>수업료</label><input type="number" id="e-fee"></div>
+    </div>
+    <div class="frow2"><label>결제방식</label>
+      <div class="msel" id="msel-edit">
+        <button class="mopt" data-m="입금">입금</button>
+        <button class="mopt" data-m="결제선생">결제선생</button>
+        <button class="mopt" data-m="현장카드">현장카드</button>
+      </div>
+    </div>
+    <div class="fgrid2">
+      <div class="frow2"><label>형제</label><input type="text" id="e-sib"></div>
+      <div class="frow2"><label>메모</label><input type="text" id="e-memo"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-edit')">취소</button>
+      <button class="btn pri" onclick="saveEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 달력 -->
+<div class="modal-bg" id="ov-cal">
+  <div class="cal-box">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600" id="cal-label"></div>
+    <div class="cal-hdr">
+      <button class="cal-nav2" id="cal-prev">&#8249;</button>
+      <span class="cal-title2" id="cal-title"></span>
+      <button class="cal-nav2" id="cal-next">&#8250;</button>
+    </div>
+    <div class="cal-grid2" id="cal-grid"></div>
+    <div class="cal-foot">
+      <button class="btn sm" id="cal-clear">날짜 지우기</button>
+      <button class="btn sm" onclick="closeOv('ov-cal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 다음달 넘기기 -->
+<div class="modal-bg" id="ov-next">
+  <div class="modal">
+    <h3>다음 달로 넘기기</h3>
+    <div style="background:var(--blue-bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:1rem;font-size:13px;color:var(--blue);font-weight:600" id="next-info"></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:.75rem">
+      ✅ 현재 달 납부 기록 → <b>이전 기록</b> 탭에 저장<br>
+      ✅ 학생 목록 <b>그대로 유지</b><br>
+      ✅ 납부 여부·납부일 <b>초기화</b>
+    </div>
+    <div style="font-size:13px;color:var(--red);font-weight:600">미납자 <span id="next-unpaid">0</span>명 있어요!</div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-next')">취소</button>
+      <button class="btn pri" onclick="doNextMonth()">넘기기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 결석 추가 -->
+<div class="modal-bg" id="ov-absent">
+  <div class="modal">
+    <h3>결석 예정 추가</h3>
+    <div class="frow2"><label>날짜 *</label><input type="date" id="ab-date"></div>
+    <div class="frow2"><label>학생 *</label><select id="ab-student"><option value="">학생 선택...</option></select></div>
+    <div class="frow2"><label>사유</label>
+      <select id="ab-reason"><option>개인사정</option><option>병결</option><option>학교행사</option><option>수학여행</option><option>시험</option><option>기타</option></select>
+    </div>
+    <div class="frow2"><label>메모</label><input type="text" id="ab-memo" placeholder="추가 메모"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-absent')">취소</button>
+      <button class="btn pri" onclick="addAbsent()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 총점 설정 -->
+<div class="modal-bg" id="ov-vsettings">
+  <div class="modal">
+    <h3>반별 총점 설정</h3>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">각 반의 단어시험 총점을 설정해주세요</div>
+    <div id="vsettings-list"></div>
+    <div class="mfoot"><button class="btn" onclick="closeOv('ov-vsettings')">닫기</button></div>
+  </div>
+</div>
+
+<!-- 모달: 공지 작성 -->
+<div class="modal-bg" id="ov-notice">
+  <div class="modal">
+    <h3>공지사항 작성</h3>
+    <div class="frow2"><label>제목 *</label><input type="text" id="n-title" placeholder="공지 제목"></div>
+    <div class="frow2"><label>내용 *</label><textarea id="n-body" rows="5" placeholder="공지 내용..." style="resize:vertical"></textarea></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-notice')">취소</button>
+      <button class="btn grn" onclick="saveNotice()">공지 올리기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 교재 추가 -->
+<div class="modal-bg" id="ov-book">
+  <div class="modal">
+    <h3>교재 추가</h3>
+    <div class="frow2"><label>문자 발송일</label><input type="date" id="b-date"></div>
+    <div class="frow2"><label>학생 *</label><select id="b-student"><option value="">학생 선택...</option></select></div>
+    <div class="frow2"><label>교재명 *</label><input type="text" id="b-book" placeholder="교재명 입력"></div>
+    <div class="fgrid2">
+      <div class="frow2"><label>금액</label><input type="number" id="b-amount" placeholder="27900"></div>
+      <div class="frow2"><label>입고일</label><input type="date" id="b-arrival"></div>
+    </div>
+    <div class="frow2"><label>담당</label><input type="text" id="b-manager" placeholder="원장님"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-book')">취소</button>
+      <button class="btn pri" onclick="addBook()">추가</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyDSxsGjOdNX1tOhOyNLVaooWW7IAywkdyM",
+  authDomain: "bomnal-admin.firebaseapp.com",
+  projectId: "bomnal-admin",
+  storageBucket: "bomnal-admin.firebasestorage.app",
+  messagingSenderId: "1079029970303",
+  appId: "1:1079029970303:web:ad98df559f8d1d4c06564a"
+};
+const fbApp = initializeApp(FB_CONFIG);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+// ── 전역 상태 ──
+let ME = null;
+let TD = [], WD = [], BD = [], ABSENT = [];
+let VOCAB_MONTHLY = {}, VOCAB_TOTALS = {};
+let TUITION_HIST = [];
+let NOTICES = [];
+let curYear = new Date().getFullYear();
+let curMonth = new Date().getMonth() + 1;
+let abYear = curYear, abMonth = new Date().getMonth();
+let vocabYear = curYear, vocabMonth = curMonth;
+let calTargetId = null, calY, calM;
+let regMethod = '', editMethod = '', editIdx = -1;
+let selHistIdx = 0;
+const SPECIALS = ['결석','조퇴','지각','부모님'];
+const ROLE_TABS = {
+  director: ['notice','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
+  manager:  ['notice','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
+  teacher:  ['notice','book','absent','vocab']
+};
+const TAB_LABELS = {
+  junior:'초중등부', senior:'고등부',
+  notice:'공지사항', members:'회원명부', book:'교재비',
+  summary:'현황 요약', absent:'결석예정자', vocab:'단어시험',
+  history:'이전 기록', withdrawn:'퇴원생'
+};
+const ROLE_NAMES = {director:'원장', manager:'실장', teacher:'선생님'};
+
+// ── 유틸 ──
+const $ = id => document.getElementById(id);
+function fmt(iso){ if(!iso||iso==='-')return '-'; const p=iso.split('-'); return parseInt(p[1])+'월 '+parseInt(p[2])+'일'; }
+function toISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function monthKey(y,m){ return `${y}-${String(m).padStart(2,'0')}`; }
+function curKey(){ return monthKey(curYear, curMonth); }
+function openOv(id){ $(id).classList.add('on'); }
+function closeOv(id){ $(id).classList.remove('on'); }
+window.closeOv = closeOv;
+document.querySelectorAll('.modal-bg').forEach(bg => bg.addEventListener('click', e => { if(e.target===bg) closeOv(bg.id); }));
+function closeAllMpop(){ document.querySelectorAll('.mpop').forEach(m => m.classList.remove('on')); }
+document.addEventListener('click', e => { if(!e.target.closest('.mpop-wrap')) closeAllMpop(); });
+function updMonthLabel(){ $('month-label').textContent = `${curYear}년 ${curMonth}월`; }
+
+// ── 로그인 ──
+$('li-btn').onclick = doLogin;
+$('li-email').addEventListener('keydown', e => { if(e.key==='Enter') $('li-pw').focus(); });
+$('li-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+async function doLogin() {
+  const email = $('li-email').value.trim();
+  const pw = $('li-pw').value;
+  $('li-err').textContent = '';
+  if(!email||!pw){ $('li-err').textContent='이메일과 비밀번호를 입력해주세요'; return; }
+  try {
+    $('li-btn').textContent = '로그인 중...';
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    $('li-err').textContent = '이메일 또는 비밀번호가 올바르지 않아요';
+    $('li-btn').textContent = '로그인';
+  }
+}
+$('btn-logout').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async user => {
+  if(user) {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    if(snap.exists()) {
+      ME = { uid:user.uid, email:user.email, ...snap.data() };
+    } else {
+      // 첫 로그인 - 기본값 teacher (원장은 별도 등록 필요)
+      ME = { uid:user.uid, email:user.email, name:user.email.split('@')[0], role:'teacher' };
+      await setDoc(doc(db,'users',user.uid), { name:ME.name, role:ME.role, email:ME.email });
+    }
+    initApp();
+  } else {
+    ME = null;
+    $('login-screen').style.display = 'flex';
+    $('app-screen').style.display = 'none';
+    $('li-btn').textContent = '로그인';
+  }
+});
+
+function initApp() {
+  $('login-screen').style.display = 'none';
+  $('app-screen').style.display = 'flex';
+  $('user-disp').textContent = `${ME.name} ${ROLE_NAMES[ME.role]||''}`;
+  $('role-dot').className = 'role-dot ' + ME.role;
+  updMonthLabel();
+
+  // 권한별 버튼
+  if(ME.role==='director'||ME.role==='manager') {
+    $('btn-next-month').style.display = 'inline-flex';
+    $('btn-new-student').style.display = 'inline-flex';
+  }
+  if(ME.role==='director') {
+    $('btn-write-notice').style.display = 'inline-flex';
+  }
+
+  // 탭 생성
+  buildTabs();
+
+  // 월 이동
+  $('btn-prev-month').onclick = () => { curMonth--; if(curMonth<1){curMonth=12;curYear--;} updMonthLabel(); rt(); updStats(); };
+  $('btn-next-month-nav').onclick = () => { curMonth++; if(curMonth>12){curMonth=1;curYear++;} updMonthLabel(); rt(); updStats(); };
+
+  // 초기 데이터 설정 후 구독
+  initStudentsIfEmpty().then(() => subscribe()).catch(()=>subscribe());
+}
+
+function buildTabs() {
+  const tabs = ROLE_TABS[ME.role] || ROLE_TABS.teacher;
+  $('main-tabs').innerHTML = tabs.map((t,i) => {
+    const badge = (t==='history'||t==='withdrawn') ? `<span class="tbadge" id="badge-${t}">0</span>` : '';
+    return `<button class="tab${i===0?' on':''}" data-tab="${t}" onclick="swTab('${t}',this)">${TAB_LABELS[t]}${badge}</button>`;
+  }).join('');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  $('panel-'+tabs[0]).classList.add('on');
+}
+
+window.swTab = function(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  $('panel-'+name).classList.add('on');
+  closeAllMpop();
+  if(name==='junior') { updCls(); rt('junior'); }
+  if(name==='senior') { updCls(); rt('senior'); }
+  if(name==='absent') renderAbsent();
+  if(name==='vocab') renderVocab();
+  if(name==='history') renderHist();
+  if(name==='members') renderMembers();
+};
+
+
+// ── 초기 학생 데이터 (Firestore가 비어있을 때 초기화용) ──
+var INITIAL_STUDENTS = [
+  {num:'314',cls:'종촌중3A',name:'김민하',phone:'01028271312',fee:270000,memo:'교과/형제할인',sibling:'윤하',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'307',cls:'어진중3A',name:'임서현',phone:'01023216200',fee:270000,memo:'교과/형제할인',sibling:'임건휘',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'512',cls:'종촌중3A',name:'최윤서',phone:'01052183753',fee:265000,memo:'교과/형제할인',sibling:'윤채,윤호',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'725',cls:'종촌중3A',name:'한예주',phone:'01041979179',fee:275000,memo:'형제할인',sibling:'주원',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'3809',cls:'어진중3A',name:'서진우',phone:'01074073809',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
+  {num:'10130',cls:'어진중3A',name:'이하윤',phone:'01099588525',fee:275000,memo:'형제할인',sibling:'이윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'1125',cls:'종촌중3C',name:'이혜원',phone:'01089049357',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'126',cls:'종촌중3C',name:'민태기',phone:'01072533274',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'9044',cls:'어진중3B',name:'노현승',phone:'01036798044',fee:270000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'520',cls:'Sprout1',name:'박재윤',phone:'01027636760',fee:235000,memo:'형제할인',sibling:'도윤',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'918',cls:'Sprout2',name:'이건우',phone:'01077204157',fee:155000,memo:'형제할인',sibling:'서아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'715',cls:'Sprout1',name:'조윤아',phone:'01033867090',fee:230000,memo:'교과/형제할인',sibling:'민준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1401',cls:'Sprout1',name:'송정우',phone:'01044221401',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'924',cls:'seed4',name:'고현서',phone:'01088627051',fee:205000,memo:'형제할인',sibling:'현준',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'4860',cls:'어진중1A',name:'손효원',phone:'01040024860',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'01459',cls:'seed3',name:'임서율',phone:'01088821459',fee:200000,memo:'교과/형제할인',sibling:'임서준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'423',cls:'seed4',name:'김민찬',phone:'01077429685',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'1021',cls:'seed4',name:'김성윤',phone:'01085670061',fee:235000,memo:'형제할인',sibling:'성준',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'130',cls:'Sprout2',name:'김선우',phone:'01046185357',fee:235000,memo:'형제할인',sibling:'도현',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'219',cls:'Sprout2',name:'이재희',phone:'01091165177',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'120920',cls:'종촌중2D',name:'왕지후',phone:'01050152683',fee:270000,memo:'교과/형제할인',sibling:'왕지아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'1827',cls:'seed11',name:'이준우',phone:'01030251827',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'204',cls:'seed12',name:'박도윤',phone:'01027636760',fee:235000,memo:'형제할인',sibling:'재윤',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'150611',cls:'seed12',name:'문예원',phone:'01091468834',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'424',cls:'Sprout5',name:'정재준',phone:'01024160011',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'716',cls:'Sprout5',name:'한주원',phone:'01041979179',fee:235000,memo:'형제할인',sibling:'예주',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1024',cls:'종촌중1A',name:'김채아',phone:'01072267861',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'721',cls:'종촌중1A',name:'고현준',phone:'01088627051',fee:270000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1120',cls:'어진중2B',name:'강시연',phone:'01071178690',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3214',cls:'종촌중1A',name:'강백현',phone:'01084868401',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'3219',cls:'어진중2A',name:'송지원',phone:'01032963219',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2288',cls:'종촌중2A',name:'이래오',phone:'01072362288',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0829',cls:'어진중2B',name:'박상빈',phone:'01037214215',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'1459',cls:'종촌중1F',name:'임서준',phone:'01088821459',fee:270000,memo:'교과/형제할인',sibling:'서율',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'430',cls:'어진중3B',name:'김승후',phone:'01036199870',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'10260',cls:'종촌중3C',name:'오재민',phone:'01094074602',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'1227',cls:'종촌중2A',name:'최경재',phone:'01086176038',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'205',cls:'종촌중2A',name:'조민준',phone:'01033867090',fee:270000,memo:'교과/형제할인',sibling:'윤아',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'711',cls:'종촌중1A',name:'신예담',phone:'01064083661',fee:275000,memo:'형제할인',sibling:'신우연',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'1203',cls:'종촌중2A',name:'김윤하',phone:'01028271312',fee:275000,memo:'형제할인',sibling:'민하',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'918',cls:'종촌중2F',name:'이서아',phone:'01077204157',fee:275000,memo:'형제할인',sibling:'건우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'1021',cls:'종촌중2C',name:'이예나',phone:'01099022414',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1205',cls:'종촌중2A',name:'문준희',phone:'01044522509',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'401',cls:'종촌중2A',name:'김수현',phone:'01095150266',fee:270000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1002',cls:'어진중3B',name:'오연규',phone:'01032181154',fee:275000,memo:'형제할인',sibling:'정윤',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
+  {num:'805',cls:'종촌중2A',name:'김루아',phone:'01066103290',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'303',cls:'Sprout2',name:'김성준',phone:'01085670061',fee:235000,memo:'형제할인',sibling:'성윤',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'4280',cls:'어진중3B',name:'양현우',phone:'01089339936',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'212',cls:'Sprout4',name:'유준혁',phone:'01071925706',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-14"}},
+  {num:'6700',cls:'seed11',name:'최현준',phone:'01080196700',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0806',cls:'Sprout5',name:'홍주훈',phone:'01056290405',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'2635',cls:'Sprout2',name:'신지윤',phone:'01086092635',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'6795',cls:'종촌중3A',name:'전수윤',phone:'01067950813',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'3500',cls:'어진중3A',name:'정한비',phone:'01035009531',fee:270000,memo:'교과/형제할인',sibling:'한결',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'3753',cls:'종촌중2C',name:'최윤채',phone:'01052183753',fee:265000,memo:'교과/형제할인',sibling:'윤서,윤호',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'5218',cls:'Seed3',name:'최윤호',phone:'01052183753',fee:195000,memo:'교과/형제할인',sibling:'윤서,윤채',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3102',cls:'Seed12',name:'이은재',phone:'01031021133',fee:230000,memo:'형제/교과할인',sibling:'혜리',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'1133',cls:'종촌중2F',name:'이혜리',phone:'01031021133',fee:270000,memo:'형제/교과할인',sibling:'은재',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'3679',cls:'Sprout4',name:'노현서',phone:'01036798044',fee:235000,memo:'형제할인',sibling:'현승',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'12345',cls:'seed12',name:'송시윤',phone:'01047203171',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'9479',cls:'Sprout5',name:'서가온',phone:'01094797558',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'9055',cls:'종촌중3A',name:'이예주',phone:'01090919055',fee:275000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'9052',cls:'종촌중1A',name:'오정윤',phone:'01032181154',fee:270000,memo:'형제/교과할인',sibling:'연규',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
+  {num:'802',cls:'종촌중3C',name:'민경준',phone:'01082574066',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8131',cls:'종촌중1D',name:'조우진',phone:'01087498131',fee:275000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8108',cls:'Sprout4',name:'박시언',phone:'01088268018',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2610',cls:'종촌중2F',name:'이서윤',phone:'01026103608',fee:275000,memo:'형제할인',sibling:'이준서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8984',cls:'Sprout2',name:'김규연',phone:'01089843299',fee:235000,memo:'형제할인',sibling:'김도연',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'1675',cls:'종촌중2C',name:'남효인',phone:'01090501675',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'161202',cls:'seed5',name:'장지서',phone:'01086229817',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'160922',cls:'seed5',name:'노아영',phone:'01031283409',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0120',cls:'Seed3',name:'방은비',phone:'01073940525',fee:230000,memo:'교과/형제할인',sibling:'은별',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'4029',cls:'종촌중1A',name:'방은별',phone:'01073940525',fee:270000,memo:'교과/형제할인',sibling:'은비',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'4924',cls:'어진중1A',name:'박세원',phone:'01077374924',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'171225',cls:'seed5',name:'배관영',phone:'01098323060',fee:235000,memo:'형제할인',sibling:'수진',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'5015',cls:'seed13',name:'왕지아',phone:'01050152683',fee:230000,memo:'교과/형제할인',sibling:'지후',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'151117',cls:'seed13',name:'이예슬',phone:'01045371203',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'151225',cls:'seed13',name:'김재민',phone:'01027617962',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'3608',cls:'Sprout5',name:'이준서',phone:'01026103608',fee:235000,memo:'형제할인',sibling:'이서윤',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0419',cls:'종촌중2C',name:'양서진',phone:'01062560419',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8591',cls:'seed11',name:'유민호',phone:'01051128591',fee:230000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1126',cls:'Sprout4',name:'정유진',phone:'01087891126',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2626',cls:'seed13',name:'김수빈',phone:'01094102626',fee:230000,memo:'형제할인(만원)',sibling:'김수현,수아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0118',cls:'seed4',name:'진유찬',phone:'01030339249',fee:235000,memo:'형제할인',sibling:'진유림',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'9446',cls:'seed13',name:'정현준',phone:'01094463821',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'02626',cls:'seed14',name:'김수현',phone:'01094102626',fee:200000,memo:'형제할인(만원)',sibling:'김수빈,수아',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'102626',cls:'seed14',name:'김수아',phone:'01094102626',fee:200000,memo:'형제할인(만원)',sibling:'김수현,수빈',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'7646',cls:'seed14',name:'윤정원',phone:'01062027646',fee:205000,memo:'형제할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2579',cls:'seed12',name:'송서진',phone:'01054262579',fee:235000,memo:'교과할인',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'5105',cls:'seed5',name:'진예은',phone:'01033525105',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'9352',cls:'Sprout1',name:'주세훈',phone:'01062469352',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2452',cls:'종촌중3C',name:'윤선오',phone:'01038352452',fee:270000,memo:'교과/형제할인',sibling:'윤채이',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'8525',cls:'종촌중1A',name:'이윤우',phone:'01099588525',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'80270',cls:'Sprout2',name:'박채연',phone:'01088778027',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2297',cls:'종촌중2F',name:'강민서',phone:'01064152297',fee:275000,memo:'형제할인',sibling:'강지율',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3575',cls:'종촌중2F',name:'남소율',phone:'01084623575',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'8551',cls:'Sprout2',name:'김석현',phone:'01029598551',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'60930',cls:'종촌중2F',name:'조희원',phone:'01021760930',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2294',cls:'Sprout2',name:'장예진',phone:'01079242294',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'6200',cls:'Sprout2',name:'임건휘',phone:'01023216200',fee:235000,memo:'형제할인',sibling:'임서현',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'8772',cls:'seed13',name:'박희재',phone:'01052928772',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'8205',cls:'종촌중1B',name:'송혜주',phone:'01052718205',fee:265000,memo:'교과/형제할인',sibling:'송혜원/윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'8305',cls:'종촌중1B',name:'송혜원',phone:'01052718205',fee:265000,memo:'교과/형제할인',sibling:'송혜주/윤우',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'1989',cls:'종촌중1D',name:'이지원',phone:'01031771989',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'707',cls:'seed12',name:'김도현',phone:'01046185357',fee:235000,memo:'형제할인',sibling:'김선우',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3833',cls:'종촌중1E',name:'임승혁',phone:'01049483833',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'3299',cls:'어진중2B',name:'김도연',phone:'01089843299',fee:275000,memo:'형제할인',sibling:'김규연',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'6415',cls:'Sprout4',name:'강지율',phone:'01064152297',fee:235000,memo:'형제할인',sibling:'강민서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'120607',cls:'어진중2B',name:'황해솔',phone:'01052140711',fee:275000,memo:'형제할인',sibling:'황가온',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'4894',cls:'sprout3',name:'손나율',phone:'01030154894',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
+  {num:'7311',cls:'종촌중2D',name:'서다현',phone:'01040407311',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'6699',cls:'seed14',name:'인서은',phone:'01091236699',fee:210000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'000725',cls:'종촌중1A',name:'배수진',phone:'01098323060',fee:270000,memo:'교과/형제할인',sibling:'배관영',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2231',cls:'어진중2A',name:'신유나',phone:'01091482231',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'150914',cls:'seed4',name:'송윤우',phone:'01052718205',fee:225000,memo:'교과/형제할인',sibling:'송혜원/혜주',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'121203',cls:'종촌중2C',name:'유민준',phone:'01051128591',fee:270000,memo:'교과/형제할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'5724',cls:'종촌중2D',name:'고은서',phone:'01085268668',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'8210',cls:'sprout3',name:'김현중',phone:'01039978210',fee:275000,memo:'형제할인',sibling:'김해중',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1031',cls:'seed11',name:'김해중',phone:'01039978210',fee:235000,memo:'형제할인',sibling:'김현중',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'1317',cls:'seed12',name:'남태윤',phone:'01044851317',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2452',cls:'종촌중1C',name:'윤채이',phone:'01038352452',fee:270000,memo:'교과/형제할인',sibling:'윤선오',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'3241',cls:'sprout3',name:'김유은',phone:'01050653241',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'9502',cls:'Sprout2',name:'김시완',phone:'01030429502',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'',cls:'어진중2B',name:'여민준',phone:'01020939317',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0804',cls:'Sprout2',name:'김하린',phone:'01021287920',fee:235000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'',cls:'종촌중2C',name:'김강우',phone:'01048406979',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'9249',cls:'seed3',name:'진유림',phone:'01030339249',fee:235000,memo:'형제할인',sibling:'진유찬',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'0330',cls:'종촌중1B',name:'김준범',phone:'01099117912',fee:275000,memo:'교과할인',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'3166',cls:'종촌중1B',name:'정은우',phone:'01077993166',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'308',cls:'종촌중1C',name:'김민성',phone:'01024011730',fee:275000,memo:'형제할인',sibling:'민서',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
+  {num:'1730',cls:'Sprout2',name:'김민서',phone:'01024011730',fee:235000,memo:'형제할인',sibling:'민성',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-27"}},
+  {num:'',cls:'어진중3B',name:'윤지원',phone:'01062027646',fee:275000,memo:'형제할인',sibling:'정원',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'어진중3B',name:'이상원',phone:'01033045883',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'',cls:'어진중3B',name:'지예준',phone:'01071837945',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3049',cls:'Seed12',name:'구나영',phone:'01095943049',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0760',cls:'Sprout2',name:'이예지',phone:'01045720760',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌중1B',name:'김은기',phone:'01036559679',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'4931',cls:'종촌중1B',name:'윤예하',phone:'01024254931',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8379',cls:'Seed13',name:'심이레',phone:'01082728379',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
+  {num:'5960',cls:'Seed13',name:'김가온',phone:'01044135960',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'',cls:'종촌중2D',name:'김지원',phone:'01057225895',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌중2D',name:'정준희',phone:'01057319100',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2705',cls:'Sprout4',name:'이현서',phone:'01055892705',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'8393',cls:'Sprout6',name:'고하은',phone:'01031188393',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'4804',cls:'Seed11',name:'이서진',phone:'01026494804',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'6707',cls:'Seed3',name:'유하진',phone:'01097976707',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'3799',cls:'Seed1',name:'김민재',phone:'01098613799',fee:240000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2833',cls:'Seed11',name:'박시윤',phone:'01020052833',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌중1D',name:'김승훈',phone:'01033304616',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'1571',cls:'Seed11',name:'임도희',phone:'01064791571',fee:235000,memo:'형제할인',sibling:'도훈',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'0225',cls:'어진중1A',name:'임도훈',phone:'01064791571',fee:270000,memo:'교과/형제할인',sibling:'도희',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'어진중3B',name:'정민섭',phone:'01054443820',fee:280000,memo:'',sibling:'',method:'현장카드',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌중1E',name:'박가온',phone:'01071905690',fee:280000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2424',cls:'Sprout6',name:'박지안',phone:'01034662424',fee:240000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'1026',cls:'Seed11',name:'김도윤',phone:'01095150266',fee:230000,memo:'교과/형제할인',sibling:'수현',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'2699',cls:'Seed11',name:'조국',phone:'01088702699',fee:240000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'1980',cls:'Seed3',name:'유수예',phone:'01031151980',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8660',cls:'Sprout6',name:'윤사랑',phone:'01020878660',fee:235000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌중2C',name:'천승재',phone:'01091725333',fee:275000,memo:'교과할인',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-03"}},
+  {num:'',cls:'종촌중1E',name:'박형식',phone:'01092512394',fee:280000,memo:'',sibling:'',method:'입금',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3671',cls:'seed14',name:'권민준',phone:'01030123671',fee:210000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2478',cls:'seed15',name:'김수현',phone:'01045932478',fee:160000,memo:'',sibling:'',method:'결제선생',level:'junior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'511',cls:'종촌고1A',name:'장서희',phone:'01098789778',fee:310000,memo:'교과/형제할인',sibling:'예준',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'0127',cls:'종촌고1B',name:'엄태준',phone:'01088871500',fee:315000,memo:'교과할인',sibling:'',method:'입금',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'703',cls:'고운고1',name:'이시온',phone:'01037821703',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'324',cls:'종촌고1A',name:'전용성',phone:'01034673963',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'605',cls:'종촌고1A',name:'윤태원',phone:'01053140692',fee:310000,memo:'교과/형제할인',sibling:'현서',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'1228',cls:'종촌고1B',name:'정한결',phone:'01035009531',fee:310000,memo:'교과/형제할인',sibling:'한비',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'7030',cls:'종촌고1B',name:'황가온',phone:'01052140711',fee:315000,memo:'형제할인',sibling:'해솔',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'9751',cls:'종촌고1B',name:'주현우',phone:'01066909751',fee:315000,memo:'교과할인',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'3097',cls:'고운고1',name:'진시훈',phone:'01034783097',fee:315000,memo:'교과할인',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'9203',cls:'종촌고1C',name:'양가연',phone:'01092037217',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'9631',cls:'종촌고1A',name:'이서준',phone:'01047126862',fee:310000,memo:'형제/교과할인',sibling:'이채은',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'8016',cls:'고운고2',name:'윤호',phone:'01047878016',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-04"}},
+  {num:'119',cls:'고운고2',name:'장예준',phone:'01098789778',fee:315000,memo:'형제할인',sibling:'서희',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'526',cls:'고운고2',name:'정다현',phone:'01051041000',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'0514',cls:'종촌고2A',name:'고은채',phone:'01044475912',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'117',cls:'종촌고3',name:'양기호',phone:'01089339936',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'22000',cls:'종촌고3',name:'성정은',phone:'01035430680',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'902',cls:'종촌고3',name:'윤현서',phone:'01053140692',fee:310000,memo:'교과/형제할인',sibling:'태원',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'4712',cls:'종촌고3',name:'이채은',phone:'01047126862',fee:315000,memo:'형제할인',sibling:'이서준',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'4084',cls:'종촌고2B',name:'권민준',phone:'01052254084',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'80916',cls:'종촌고3',name:'한예인',phone:'01081219101',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌고2A',name:'마수민',phone:'01063952344',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고2B',name:'신지윤B',phone:'01041181734',fee:315000,memo:'교과할인',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고2B',name:'최유진',phone:'01041316410',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'3070',cls:'종촌고1B',name:'구자현',phone:'01084193070',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고2B',name:'유시현',phone:'01023844362',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'2432',cls:'종촌고3',name:'오예주',phone:'01024324482',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌고1A',name:'장동훈',phone:'01054326109',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'',cls:'종촌고1A',name:'신우연',phone:'01064083661',fee:315000,memo:'형제할인',sibling:'신예담',method:'입금',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'',cls:'종촌고1C',name:'황하은',phone:'01045576245',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌고3',name:'이영은',phone:'01025530360',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고3',name:'김태은',phone:'01047383157',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고3',name:'박서연',phone:'01091966872',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-04-30"}},
+  {num:'',cls:'종촌고2B',name:'신지훈',phone:'01043884936',fee:315000,memo:'교과할인',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고1A',name:'박서연',phone:'01088180129',fee:320000,memo:'',sibling:'',method:'현장카드',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+  {num:'',cls:'종촌고1A',name:'강예리',phone:'01030169213',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-01"}},
+  {num:'',cls:'종촌고1B',name:'전상훈',phone:'01094172802',fee:320000,memo:'',sibling:'',method:'결제선생',level:'senior',isNew:false,withdrawn:false,paidMonths:{"2026-05": true},paidDates:{"2026-05": "2026-05-02"}},
+  {num:'',cls:'종촌고1B',name:'이은채',phone:'01030335353',fee:320000,memo:'',sibling:'',method:'',level:'senior',isNew:false,withdrawn:false,paidMonths:{},paidDates:{}},
+];
+
+async function initStudentsIfEmpty() {
+  const snap = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(m => m.getDocs(collection(db,'students')));
+  if(snap.empty) {
+    console.log('Firestore 비어있음, 초기 데이터 삽입 중...');
+    for(const s of INITIAL_STUDENTS) {
+      await addDoc(collection(db,'students'), s);
+    }
+    console.log('초기 데이터 삽입 완료!');
+  }
+}
+
+// ── Firestore 구독 ──
+function subscribe() {
+  // 학생
+  onSnapshot(collection(db,'students'), snap => {
+    TD=[]; WD=[];
+    snap.forEach(d => {
+      const s={id:d.id,...d.data()};
+      (s.withdrawn ? WD : TD).push(s);
+    });
+    TD.sort((a,b)=>(a.cls||'').localeCompare(b.cls||''));
+    WD.sort((a,b)=>(a.cls||'').localeCompare(b.cls||''));
+    rt(); rwn(); updStats(); updCls(); renderMembers(); renderVocab();
+  });
+  // 교재비
+  onSnapshot(collection(db,'books'), snap => {
+    BD=[];
+    snap.forEach(d=>BD.push({id:d.id,...d.data()}));
+    BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));
+    fb();
+  });
+  // 결석
+  onSnapshot(collection(db,'absent'), snap => {
+    ABSENT=[];
+    snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
+    ABSENT.sort((a,b)=>a.date>b.date?1:-1);
+    renderAbsent(); renderAbsentSide();
+  });
+  // 단어시험
+  onSnapshot(doc(db,'vocab','data'), snap => {
+    if(snap.exists()){ const d=snap.data(); VOCAB_MONTHLY=d.monthly||{}; VOCAB_TOTALS=d.totals||{}; }
+    renderVocab();
+  });
+  // 수업료 이전기록
+  onSnapshot(doc(db,'tuition','history'), snap => {
+    TUITION_HIST = snap.exists() ? (snap.data().list||[]) : [];
+    renderHist();
+    const b=$('badge-history'); if(b) b.textContent=TUITION_HIST.length;
+  });
+  // 공지
+  onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')), snap => {
+    NOTICES=[];
+    snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
+    renderNotices();
+    checkNoticePopup();
+  });
+}
+
+// ── 공지사항 ──
+function renderNotices() {
+  const el=$('notice-list'); if(!el) return;
+  if(!NOTICES.length){ el.innerHTML='<div class="empty">등록된 공지가 없어요</div>'; return; }
+  el.innerHTML = NOTICES.map(n => {
+    const myRead=(n.readBy||[]).includes(ME.uid);
+    const readNames=n.readNames||[];
+    const unreadNames=(n.targetNames||[]).filter(nm=>!(n.readNames||[]).includes(nm));
+    const ts=n.createdAt?new Date(n.createdAt.seconds*1000).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const canDelete=ME.role==='director';
+    return `<div class="notice-card">
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:.5rem">
+        <div>
+          <div class="notice-title">${n.title}</div>
+          <div class="notice-meta">${n.authorName||''} · ${ts}</div>
+        </div>
+        ${canDelete?`<button class="btn sm red" onclick="delNotice('${n.id}')">삭제</button>`:''}
+      </div>
+      <div class="notice-body">${n.body}</div>
+      ${ME.role!=='director'?(myRead
+        ?`<button class="confirm-btn done">✓ 확인 완료</button>`
+        :`<button class="confirm-btn" onclick="confirmNotice('${n.id}')">✓ 확인했어요</button>`):''}
+      ${(ME.role==='director'||ME.role==='manager')?`<div class="notice-reads">
+        <span style="font-size:11px;color:var(--text3);align-self:center;margin-right:4px">확인:</span>
+        ${readNames.map(nm=>`<span class="rchip">✓ ${nm}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">아직 없음</span>'}
+        ${unreadNames.length?`<span style="font-size:11px;color:var(--text3);margin-left:4px">미확인:</span>`+unreadNames.map(nm=>`<span class="uchip">${nm}</span>`).join(''):''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+window.confirmNotice = async id => {
+  await updateDoc(doc(db,'notices',id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
+};
+window.delNotice = async id => {
+  if(!confirm('공지를 삭제할까요?')) return;
+  await deleteDoc(doc(db,'notices',id));
+};
+window.openWriteNotice = function(){
+  $('n-title').value=''; $('n-body').value=''; openOv('ov-notice');
+};
+window.saveNotice = async function(){
+  const title=$('n-title').value.trim(); const body=$('n-body').value.trim();
+  if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
+  await addDoc(collection(db,'notices'),{
+    title,body,authorUid:ME.uid,authorName:ME.name,
+    readBy:[],readNames:[],createdAt:serverTimestamp()
+  });
+  closeOv('ov-notice');
+};
+function checkNoticePopup(){
+  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
+  if(!unread.length||document.getElementById('npopup')) return;
+  const div=document.createElement('div');
+  div.id='npopup'; div.className='npopup';
+  div.innerHTML=`<div class="npopup-box">
+    <div class="npopup-hdr">📢 읽지 않은 공지 ${unread.length}건</div>
+    <div class="npopup-body">${unread.map(n=>`<div class="npopup-item"><div class="npopup-item-title">${n.title}</div><div class="npopup-item-body">${n.body}</div></div>`).join('')}</div>
+    <div class="npopup-foot"><button class="btn pri" onclick="confirmAllNotices()">모두 확인했어요</button></div>
+  </div>`;
+  document.body.appendChild(div);
+}
+window.confirmAllNotices = async function(){
+  const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
+  for(const n of unread) await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
+  const p=document.getElementById('npopup'); if(p) p.remove();
+};
+
+// ── 수업료 ──
+function updCls(){
+  ['j','s'].forEach(sfx=>{
+    const level = sfx==='j'?'junior':'senior';
+    const sel=$('q-cls-'+sfx); if(!sel) return;
+    const cur=sel.value;
+    const cls=[...new Set(TD.filter(r=>(r.level||'junior')===level).map(r=>r.cls))].sort();
+    sel.innerHTML='<option value="">전체 반</option>'+cls.map(c=>`<option>${c}</option>`).join('');
+    sel.value=cur;
+  });
+}
+function updStats(){
+  const mk=curKey();
+  ['junior','senior'].forEach(level=>{
+    const sfx=level==='junior'?'-j':'-s';
+    const lvTD=TD.filter(r=>(r.level||'junior')===level);
+    const paid=lvTD.filter(r=>(r.paidMonths||{})[mk]);
+    const total=lvTD.length; const amt=paid.reduce((s,r)=>s+(r.fee||0),0);
+    const rate=total?Math.round(paid.length/total*100):0;
+    [['st'+sfx,total+'명'],['sp'+sfx,paid.length+'명'],['su'+sfx,(total-paid.length)+'명'],['sa'+sfx,amt.toLocaleString()]].forEach(([id,v])=>{const el=$(id);if(el)el.textContent=v;});
+    const pf=$('pf'+sfx); if(pf) pf.style.width=rate+'%';
+  });
+  // 전체 통계 (현황요약용)
+  const allPaid=TD.filter(r=>(r.paidMonths||{})[mk]);
+  const allTotal=TD.length;
+  const rate=allTotal?Math.round(allPaid.length/allTotal*100):0;
+  const sr=$('sum-rate'); if(sr) sr.textContent=rate+'%';
+  const sb=$('sum-bar'); if(sb) sb.style.width=rate+'%';
+  const sn=$('sum-new'); if(sn) sn.textContent=TD.filter(r=>r.isNew).length+'명';
+  const wb=$('badge-withdrawn'); if(wb) wb.textContent=WD.length;
+  const unpaid=TD.filter(r=>!(r.paidMonths||{})[mk]);
+  const tbu=$('tb-u'); if(tbu) tbu.innerHTML=unpaid.length
+    ?unpaid.map(r=>`<tr><td>${r.name}</td><td>${r.cls||''}</td><td>${(r.fee||0).toLocaleString()}</td><td style="font-size:12px;color:var(--text2)">${r.memo||''}</td></tr>`).join('')
+    :'<tr><td colspan="4" class="empty">미납자 없음 🎉</td></tr>';
+}
+function rt(level){
+  // level: 'junior' or 'senior', undefined = 둘 다
+  if(!level){ rt('junior'); rt('senior'); return; }
+  const sfx = level==='junior'?'-j':'-s';
+  const q=($('q-name'+sfx)||{value:''}).value;
+  const s=($('q-status'+sfx)||{value:''}).value;
+  const c=($('q-cls'+sfx)||{value:''}).value;
+  const mk=curKey();
+  const levelTD = TD.filter(r=>(r.level||'junior')===level);
+  const rows=levelTD.map((r,i)=>({r,i:TD.indexOf(r)})).filter(({r})=>{
+    const mn=r.name.indexOf(q)>=0||(r.cls||'').toLowerCase().indexOf(q.toLowerCase())>=0;
+    const isPaid=!!(r.paidMonths||{})[mk];
+    const ms=!s||(s==='납부'?isPaid:!isPaid);
+    return mn&&ms&&(!c||r.cls===c);
+  });
+  const tbId = level==='junior'?'tb-j':'tb-s';
+  const tbt=$(tbId); if(!tbt) return;
+  tbt.innerHTML=rows.length?rows.map(({r,i})=>{
+    const isPaid=!!(r.paidMonths||{})[mk];
+    const paidDate=(r.paidDates||{})[mk]||'';
+    const mid='mp-'+i;
+    return `<tr>
+      <td><button class="ck ${isPaid?'on':''}" onclick="togPaid('${r.id}')">${isPaid?'✓':''}</button></td>
+      <td style="font-size:12px">${r.cls||''}${r.isNew?'<span class="new-tag">신규</span>':''}</td>
+      <td style="font-weight:600">${r.name}</td>
+      <td style="font-size:12px;color:var(--text2)">${r.phone||'-'}</td>
+      <td>${(r.fee||0).toLocaleString()}</td>
+      <td style="overflow:visible"><div class="mpop-wrap">
+        <span class="mb M${r.method||''}" onclick="toggleMpop(event,'${mid}')">${r.method||'미설정'} ▾</span>
+        <div class="mpop" id="${mid}">
+          <button class="o입금" onclick="setMethod('${r.id}','입금')">입금</button>
+          <button class="o결제선생" onclick="setMethod('${r.id}','결제선생')">결제선생</button>
+          <button class="o현장카드" onclick="setMethod('${r.id}','현장카드')">현장카드</button>
+        </div></div></td>
+      <td><button class="dbtn ${paidDate?'set':''}" onclick="openCal('${r.id}',${i})">${paidDate?fmt(paidDate):'날짜 선택'}</button></td>
+      <td><span class="badge ${isPaid?'paid':'unpaid'}">${isPaid?'납부':'미납'}</span></td>
+      <td style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">${r.memo||''}</td>
+      <td><button class="btn sm" style="padding:3px 6px" onclick="openEdit(${i})">✏️</button></td>
+      <td><button class="btn red sm" onclick="withdraw('${r.id}')">퇴원</button></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="11" class="empty">검색 결과 없음</td></tr>`;
+}
+window.togPaid = async function(id){
+  const r=TD.find(s=>s.id===id); if(!r) return;
+  const mk=curKey();
+  const isPaid=!!(r.paidMonths||{})[mk];
+  const pm={...(r.paidMonths||{})}, pd={...(r.paidDates||{})};
+  if(isPaid){delete pm[mk];delete pd[mk];}else{pm[mk]=true;pd[mk]=toISO();}
+  await updateDoc(doc(db,'students',id),{paidMonths:pm,paidDates:pd});
+};
+window.toggleMpop = function(e,id){ e.stopPropagation(); const el=$(id); const was=el.classList.contains('on'); closeAllMpop(); if(!was) el.classList.add('on'); };
+window.setMethod = async function(id,m){ await updateDoc(doc(db,'students',id),{method:m}); closeAllMpop(); };
+
+// 달력
+window.openCal = function(rid,i){
+  calTargetId=rid;
+  const r=TD[i]; const mk=curKey();
+  const pd=(r.paidDates||{})[mk]||'';
+  $('cal-label').textContent=r.name+' · '+(r.cls||'')+' — 납부일 선택';
+  const base=pd?new Date(pd):new Date();
+  calY=base.getFullYear(); calM=base.getMonth();
+  drawCal(); openOv('ov-cal');
+};
+$('cal-prev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}drawCal();};
+$('cal-next').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}drawCal();};
+$('cal-clear').onclick=async()=>{
+  const r=TD.find(s=>s.id===calTargetId); if(!r) return;
+  const mk=curKey(); const pd={...(r.paidDates||{})}; delete pd[mk];
+  await updateDoc(doc(db,'students',calTargetId),{paidDates:pd}); closeOv('ov-cal');
+};
+function drawCal(){
+  $('cal-title').textContent=calY+'년 '+(calM+1)+'월';
+  const DAYS=['일','월','화','수','목','금','토'];
+  const first=new Date(calY,calM,1).getDay(); const last=new Date(calY,calM+1,0).getDate();
+  const mk=curKey();
+  const r=TD.find(s=>s.id===calTargetId);
+  const selISO=r?(r.paidDates||{})[mk]||'':'';
+  const todISO=toISO();
+  let h=DAYS.map(d=>`<div class="cn2">${d}</div>`).join('');
+  for(let i=0;i<first;i++) h+=`<div class="cd2 emp2"></div>`;
+  for(let d=1;d<=last;d++){
+    const iso=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    let cls='cd2';
+    if(iso===todISO) cls+=' today2';
+    if(iso===selISO) cls+=' sel2';
+    h+=`<div class="${cls}" onclick="pickDate('${iso}')">${d}</div>`;
+  }
+  $('cal-grid').innerHTML=h;
+}
+window.pickDate = async function(iso){
+  const r=TD.find(s=>s.id===calTargetId); if(!r) return;
+  const mk=curKey(); const pd={...(r.paidDates||{})}; pd[mk]=iso;
+  await updateDoc(doc(db,'students',calTargetId),{paidDates:pd}); closeOv('ov-cal');
+};
+
+// 신규 등록
+$('msel-reg').addEventListener('click',e=>{
+  const btn=e.target.closest('.mopt'); if(!btn) return;
+  regMethod=btn.getAttribute('data-m');
+  document.querySelectorAll('#msel-reg .mopt').forEach(b=>b.className='mopt');
+  btn.className='mopt S'+regMethod;
+});
+window.openReg=function(){
+  regMethod='';
+  document.querySelectorAll('#msel-reg .mopt').forEach(b=>b.className='mopt');
+  ['f-name','f-cls','f-phone','f-fee','f-sib','f-memo'].forEach(id=>$(id).value='');
+  openOv('ov-reg');
+};
+window.addStudent=async function(){
+  const name=$('f-name').value.trim(); const cls=$('f-cls').value.trim();
+  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
+  await addDoc(collection(db,'students'),{
+    name,cls,fee:parseInt($('f-fee').value)||0,method:regMethod||'',
+    phone:$('f-phone').value.trim(),sibling:$('f-sib').value.trim(),
+    memo:$('f-memo').value.trim(),isNew:true,withdrawn:false,paidMonths:{},paidDates:{}
+  });
+  closeOv('ov-reg');
+};
+
+// 학생 수정
+$('msel-edit').addEventListener('click',e=>{
+  const btn=e.target.closest('.mopt'); if(!btn) return;
+  editMethod=btn.getAttribute('data-m');
+  document.querySelectorAll('#msel-edit .mopt').forEach(b=>b.className='mopt');
+  btn.className='mopt S'+editMethod;
+});
+window.openEdit=function(i){
+  editIdx=i; const r=TD[i]; editMethod=r.method||'';
+  $('e-name').value=r.name; $('e-cls').value=r.cls||''; $('e-phone').value=r.phone||'';
+  $('e-fee').value=r.fee||''; $('e-sib').value=r.sibling||''; $('e-memo').value=r.memo||'';
+  document.querySelectorAll('#msel-edit .mopt').forEach(b=>{ b.className='mopt'+(b.getAttribute('data-m')===editMethod?' S'+editMethod:''); });
+  openOv('ov-edit');
+};
+window.saveEdit=async function(){
+  const name=$('e-name').value.trim(); const cls=$('e-cls').value.trim();
+  if(!name||!cls){alert('이름과 반은 필수입니다');return;}
+  await updateDoc(doc(db,'students',TD[editIdx].id),{
+    name,cls,fee:parseInt($('e-fee').value)||0,method:editMethod,
+    phone:$('e-phone').value.trim(),sibling:$('e-sib').value.trim(),memo:$('e-memo').value.trim()
+  });
+  closeOv('ov-edit');
+};
+
+// 퇴원/복귀
+window.withdraw=async function(id){ if(!confirm('퇴원 처리할까요?')) return; await updateDoc(doc(db,'students',id),{withdrawn:true,withdrawDate:fmt(toISO())}); };
+window.restore=async function(id){ await updateDoc(doc(db,'students',id),{withdrawn:false,withdrawDate:''}); };
+function rwn(){
+  const empty=$('w-empty'), tbl=$('tb-w'); if(!tbl) return;
+  if(!WD.length){tbl.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty) empty.style.display='none';
+  tbl.innerHTML=WD.map(r=>`<tr>
+    <td style="font-size:12px">${r.cls||''}</td><td style="font-weight:600">${r.name}</td>
+    <td style="font-size:12px;color:var(--text2)">${r.phone||'-'}</td><td>${(r.fee||0).toLocaleString()}</td>
+    <td style="font-size:12px;color:var(--text2)">${r.withdrawDate||''}</td>
+    <td style="font-size:12px;color:var(--text2)">${r.memo||''}</td>
+    <td><button class="btn grn sm" onclick="restore('${r.id}')">복귀</button></td>
+  </tr>`).join('');
+}
+
+// 다음달
+window.openNextMonth=function(){
+  const mk=curKey();
+  const unpaid=TD.filter(r=>!(r.paidMonths||{})[mk]).length;
+  const nm=curMonth===12?1:curMonth+1; const ny=curMonth===12?curYear+1:curYear;
+  $('next-info').textContent=`${curYear}년 ${curMonth}월 → ${ny}년 ${nm}월로 넘깁니다`;
+  $('next-unpaid').textContent=unpaid;
+  openOv('ov-next');
+};
+window.doNextMonth=async function(){
+  const mk=curKey();
+  const snapshot=TD.map(r=>({
+    name:r.name,cls:r.cls||'',phone:r.phone||'',fee:r.fee||0,method:r.method||'',memo:r.memo||'',
+    paid:!!(r.paidMonths||{})[mk],date:(r.paidDates||{})[mk]||''
+  }));
+  const existing=[...TUITION_HIST];
+  existing.push({year:curYear,month:curMonth,label:`${curYear}년 ${curMonth}월`,students:snapshot});
+  await setDoc(doc(db,'tuition','history'),{list:existing});
+  for(const r of TD) if(r.isNew) await updateDoc(doc(db,'students',r.id),{isNew:false});
+  if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
+  updMonthLabel(); closeOv('ov-next'); alert('넘겼어요! 이전 기록 탭에서 확인하세요.');
+};
+
+// 이전기록
+function renderHist(){
+  const empty=$('hist-empty'), content=$('hist-content'); if(!empty||!content) return;
+  if(!TUITION_HIST.length){empty.style.display='block';content.style.display='none';return;}
+  empty.style.display='none'; content.style.display='block';
+  $('hist-chips').innerHTML=TUITION_HIST.map((h,i)=>`<button class="mchip${i===selHistIdx?' on':''}" onclick="selHist(${i})">${h.label}</button>`).join('');
+  showHistDetail(TUITION_HIST[selHistIdx]);
+}
+window.selHist=function(i){ selHistIdx=i; renderHist(); };
+function showHistDetail(h){
+  if(!h) return;
+  const paid=h.students.filter(r=>r.paid); const amt=paid.reduce((s,r)=>s+(r.fee||0),0);
+  $('hist-stat').innerHTML=`<span>전체 <strong>${h.students.length}명</strong></span><span>납부 <strong style="color:var(--green)">${paid.length}명</strong></span><span>미납 <strong style="color:var(--red)">${h.students.length-paid.length}명</strong></span><span>총액 <strong>${amt.toLocaleString()}원</strong></span>`;
+  $('tb-hist').innerHTML=h.students.map(r=>`<tr>
+    <td style="font-size:12px">${r.cls}</td><td style="font-weight:600">${r.name}</td>
+    <td style="font-size:12px;color:var(--text2)">${r.phone||'-'}</td><td>${(r.fee||0).toLocaleString()}</td>
+    <td><span class="mb M${r.method||''}">${r.method||'-'}</span></td>
+    <td style="font-size:12px;color:var(--text2)">${r.date?fmt(r.date):'-'}</td>
+    <td><span class="badge ${r.paid?'paid':'unpaid'}">${r.paid?'납부':'미납'}</span></td>
+    <td style="font-size:12px;color:var(--text2)">${r.memo||''}</td>
+  </tr>`).join('');
+}
+
+// 회원명부
+function renderMembers(){
+  const q=(($('m-search')||{}).value||'').toLowerCase();
+  const c=(($('m-cls')||{}).value||'');
+  const mcs=$('m-cls');
+  if(mcs){ const cur=mcs.value; const cls=[...new Set(TD.map(r=>r.cls))].sort(); mcs.innerHTML='<option value="">전체 반</option>'+cls.map(c=>`<option${c===cur?' selected':''}>${c}</option>`).join(''); }
+  const rows=TD.map((r,i)=>({r,i})).filter(({r})=>{ const mn=r.name.toLowerCase().indexOf(q)>=0||(r.cls||'').toLowerCase().indexOf(q)>=0; return mn&&(!c||r.cls===c); });
+  const groups={}; const gOrder=[];
+  rows.forEach(({r,i})=>{ if(!groups[r.cls]){groups[r.cls]=[];gOrder.push(r.cls);} groups[r.cls].push({r,i}); });
+  let h=''; let num=0;
+  gOrder.forEach(cls=>{
+    h+=`<tr style="background:var(--surface2)"><td colspan="5" style="padding:6px 8px;font-size:12px;font-weight:700;color:var(--text2)">${cls} <span style="font-weight:400;color:var(--text3)">(${groups[cls].length}명)</span></td></tr>`;
+    groups[cls].forEach(({r,i})=>{ num++;
+      h+=`<tr><td style="color:var(--text3);font-size:11px;text-align:center">${num}</td>
+        <td style="font-size:12px">${r.cls||''}${r.isNew?'<span class="new-tag">신규</span>':''}</td>
+        <td style="font-weight:600;cursor:pointer;color:var(--blue);text-decoration:underline" onclick="openEdit(${i})">${r.name}</td>
+        <td style="font-size:12px;color:var(--text2)">${r.phone||'-'}</td>
+        <td><button class="btn sm" style="padding:3px 6px" onclick="openEdit(${i})">✏️</button></td></tr>`;
+    });
+  });
+  if(!rows.length) h='<tr><td colspan="5" class="empty">검색 결과 없음</td></tr>';
+  const tbm=$('tb-members'); if(tbm) tbm.innerHTML=h;
+  const mc=$('members-count'); if(mc) mc.textContent='총 '+num+'명';
+}
+
+// 교재비
+function fb(){
+  const q=(($('q-book')||{}).value||'').toLowerCase();
+  const s=(($('q-book-s')||{}).value||'');
+  const rows=BD.filter(r=>{ const m=r.name.indexOf(q)>=0||r.book.toLowerCase().indexOf(q)>=0; return m&&(!s||(s==='입금'?r.isPaid:!r.isPaid)); });
+  const tbb=$('tb-b'); if(!tbb) return;
+  tbb.innerHTML=rows.map(r=>`<tr>
+    <td><button class="ck ${r.isPaid?'on':''}" onclick="togBook('${r.id}')">${r.isPaid?'✓':''}</button></td>
+    <td style="font-size:12px;color:var(--text2)">${r.dateStr||''}</td>
+    <td style="font-weight:600">${r.name}</td>
+    <td style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${r.book}</td>
+    <td>${(r.amount||0).toLocaleString()}</td>
+    <td style="font-size:12px;color:var(--text2)">${r.arrival||''}</td>
+    <td><span class="badge ${r.isPaid?'paid':'unpaid'}">${r.isPaid?r.paidDate||'입금':'미입금'}</span></td>
+    <td style="font-size:12px;color:var(--text2)">${r.manager||''}</td>
+  </tr>`).join('');
+}
+window.togBook=async function(id){ const r=BD.find(b=>b.id===id); if(!r) return; await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''}); };
+window.openBookAdd=function(){
+  $('b-date').value=toISO(); $('b-arrival').value=toISO();
+  $('b-student').innerHTML='<option value="">학생 선택...</option>'+TD.map(r=>`<option>${r.name} (${r.cls||''})</option>`).join('');
+  ['b-book','b-amount','b-manager'].forEach(id=>$(id).value=''); openOv('ov-book');
+};
+window.addBook=async function(){
+  const sv=$('b-student').value; const book=$('b-book').value.trim();
+  if(!sv||!book){alert('학생과 교재명은 필수입니다');return;}
+  await addDoc(collection(db,'books'),{
+    name:sv.split(' (')[0], book, dateStr:$('b-date').value,
+    amount:parseInt($('b-amount').value)||0, arrival:$('b-arrival').value,
+    manager:$('b-manager').value.trim(), isPaid:false, paidDate:''
+  });
+  closeOv('ov-book');
+};
+
+// ── 결석예정자 ──
+const DAYS2=['일','월','화','수','목','금','토'];
+window.abMove=function(d){ abMonth+=d; if(abMonth>11){abMonth=0;abYear++;} if(abMonth<0){abMonth=11;abYear--;} renderAbsent(); };
+function renderAbsent(){
+  const t=$('ab-title'); if(t) t.textContent=abYear+'년 '+(abMonth+1)+'월 결석 예정';
+  const cal=$('absent-cal'); if(!cal) return;
+  const todISO=toISO(); const first=new Date(abYear,abMonth,1).getDay(); const last=new Date(abYear,abMonth+1,0).getDate();
+  const prevLast=new Date(abYear,abMonth,0).getDate();
+  let h='<div class="abs-grid2">';
+  DAYS2.forEach(d=>h+=`<div class="abs-dn">${d}</div>`);
+  for(let i=0;i<first;i++) h+=`<div class="abs-cell2 other2"><div class="abs-date2">${prevLast-first+1+i}</div></div>`;
+  for(let d=1;d<=last;d++){
+    const iso=abYear+'-'+String(abMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dow=new Date(abYear,abMonth,d).getDay();
+    const isToday=iso===todISO;
+    const dc='abs-date2'+(dow===0?' sun2':dow===6?' sat2':'')+(isToday?' tod2':'');
+    const cc='abs-cell2'+(isToday?' today2':'');
+    const abList=ABSENT.filter(a=>a.date===iso);
+    const tags=abList.map(a=>`<div class="abs-tag2" onclick="event.stopPropagation()">
+      <span style="overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${a.name}</span>
+      <button class="ax" onclick="delAbsent('${a.id}',event)">✕</button>
+      <div class="abs-tt"><div style="font-weight:700">${a.reason}</div>${a.memo?`<div style="color:#bbb;font-size:11px">${a.memo}</div>`:''}<button style="color:#ff7070;background:none;border:none;cursor:pointer;font-size:11px;margin-top:5px;padding:0" onclick="delAbsent('${a.id}',event)">삭제</button></div>
+    </div>`).join('');
+    h+=`<div class="${cc}" onclick="quickAbsent('${iso}')"><div class="${dc}">${d}</div>${tags}</div>`;
+  }
+  const remain=7-((first+last)%7); if(remain<7) for(let i=1;i<=remain;i++) h+=`<div class="abs-cell2 other2"><div class="abs-date2">${i}</div></div>`;
+  h+='</div>'; cal.innerHTML=h; renderAbsentSide();
+}
+function renderAbsentSide(){
+  const todISO=toISO();
+  const te=$('side-today'); if(te){
+    const tl=ABSENT.filter(a=>a.date===todISO);
+    te.innerHTML=tl.length?tl.map(a=>`<div class="abs-sitem"><div style="flex:1"><div class="abs-sname">${a.name}</div><div class="abs-sreason">${a.cls||''} · ${a.reason}${a.memo?' · '+a.memo:''}</div></div><button class="abs-sdel" onclick="delAbsent('${a.id}',event)">✕</button></div>`).join(''):'<div class="abs-sempty">결석 없음</div>';
+  }
+  const d=new Date(); const dow=d.getDay();
+  const ws=new Date(d); ws.setDate(d.getDate()-dow);
+  const we=new Date(d); we.setDate(d.getDate()+(6-dow));
+  function toD(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+  const wl=ABSENT.filter(a=>a.date>=toD(ws)&&a.date<=toD(we)&&a.date!==todISO);
+  const we2=$('side-week'); if(we2){ we2.innerHTML=wl.length?wl.map(a=>{const dp=a.date.split('-');return`<div class="abs-sitem"><div class="abs-sdate">${parseInt(dp[1])}/${parseInt(dp[2])}</div><div style="flex:1"><div class="abs-sname">${a.name}</div><div class="abs-sreason">${a.cls||''} · ${a.reason}</div></div><button class="abs-sdel" onclick="delAbsent('${a.id}',event)">✕</button></div>`;}).join(''):'<div class="abs-sempty">이번 주 결석 없음</div>';}
+}
+window.openAbsentAdd=function(){
+  $('ab-date').value=toISO();
+  $('ab-student').innerHTML='<option value="">학생 선택...</option>'+TD.map(r=>`<option value="${r.name}|${r.cls||''}">${r.name} (${r.cls||''})</option>`).join('');
+  $('ab-memo').value=''; openOv('ov-absent');
+};
+window.quickAbsent=function(iso){
+  $('ab-date').value=iso;
+  $('ab-student').innerHTML='<option value="">학생 선택...</option>'+TD.map(r=>`<option value="${r.name}|${r.cls||''}">${r.name} (${r.cls||''})</option>`).join('');
+  $('ab-memo').value=''; openOv('ov-absent');
+};
+window.addAbsent=async function(){
+  const date=$('ab-date').value; const sv=$('ab-student').value;
+  if(!date||!sv){alert('날짜와 학생을 선택해주세요');return;}
+  const parts=sv.split('|');
+  await addDoc(collection(db,'absent'),{date,name:parts[0],cls:parts[1]||'',reason:$('ab-reason').value,memo:$('ab-memo').value});
+  closeOv('ov-absent');
+};
+window.delAbsent=async function(id,e){ e.stopPropagation(); await deleteDoc(doc(db,'absent',id)); };
+
+// ── 단어시험 ──
+function vKey(){return monthKey(vocabYear,vocabMonth);}
+function vCurData(){const k=vKey();if(!VOCAB_MONTHLY[k])VOCAB_MONTHLY[k]={};return VOCAB_MONTHLY[k];}
+async function saveVocabToDb(){
+  await setDoc(doc(db,'vocab','data'),{monthly:VOCAB_MONTHLY,totals:VOCAB_TOTALS});
+}
+window.vocabMove=function(d){ vocabMonth+=d; if(vocabMonth>12){vocabMonth=1;vocabYear++;} if(vocabMonth<1){vocabMonth=12;vocabYear--;} updVocabTitle(); renderVocab(); };
+function updVocabTitle(){
+  const t=$('vocab-title'); if(t) t.textContent=vocabYear+'년 '+vocabMonth+'월';
+  const chipWrap=$('vocab-hist-chips'); const chipList=$('vocab-hist-list'); if(!chipWrap||!chipList) return;
+  const hkeys=Object.keys(VOCAB_MONTHLY).filter(k=>k!==vKey()).sort();
+  if(hkeys.length){chipWrap.style.display='flex';chipList.innerHTML=hkeys.map(k=>{const p=k.split('-');return`<button class="mchip" onclick="viewVocabHist('${k}')">${parseInt(p[0])}년 ${parseInt(p[1])}월</button>`;}).join('');}
+  else chipWrap.style.display='none';
+}
+function renderVocab(){
+  updVocabTitle();
+  const area=$('vocab-area'); if(!area) return;
+  const clsList=[...new Set(TD.map(r=>r.cls))];
+  if(!clsList.length){area.innerHTML='<div class="empty">등록된 학생이 없어요</div>';return;}
+  const curData=vCurData();
+  let h='';
+  clsList.forEach(cls=>{
+    const total=VOCAB_TOTALS[cls]||'?';
+    const students=TD.filter(r=>r.cls===cls).map(r=>r.name);
+    const data=curData[cls]||{};
+    students.forEach(name=>{if(!data[name])data[name]=[];});
+    h+=`<div style="margin-bottom:2rem"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:15px;font-weight:700">${cls}</span><span style="font-size:12px;color:var(--text3)">총점 ${total}점</span></div><div id="vt-${CSS.escape(cls)}"></div></div>`;
+  });
+  area.innerHTML=h;
+  clsList.forEach(cls=>{
+    const total=VOCAB_TOTALS[cls]||'?';
+    const students=TD.filter(r=>r.cls===cls).map(r=>r.name);
+    const data=vCurData()[cls]||{};
+    students.forEach(name=>{if(!data[name])data[name]=[];});
+    const sub=document.getElementById('vt-'+CSS.escape(cls));
+    if(sub) renderVocabTable(sub,cls,data,total,true,vocabYear,vocabMonth,students);
+  });
+}
+window.viewVocabHist=function(k){
+  const area=$('vocab-area'); if(!area) return;
+  const p=k.split('-'); const y=parseInt(p[0]); const m=parseInt(p[1]);
+  const clsList=[...new Set(TD.map(r=>r.cls))];
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem"><span style="font-size:15px;font-weight:700;color:var(--blue)">${y}년 ${m}월 기록</span><button class="btn sm" onclick="renderVocab()">← 이번 달로</button></div>`;
+  clsList.forEach(cls=>{ h+=`<div style="margin-bottom:2rem"><div style="font-size:15px;font-weight:700;margin-bottom:8px">${cls}</div><div id="vth-${CSS.escape(cls)}"></div></div>`; });
+  area.innerHTML=h;
+  const histData=(VOCAB_MONTHLY[k]||{});
+  clsList.forEach(cls=>{
+    const sub=document.getElementById('vth-'+CSS.escape(cls));
+    const data=histData[cls]||{};
+    const students=TD.filter(r=>r.cls===cls).map(r=>r.name);
+    const total=VOCAB_TOTALS[cls]||'?';
+    if(sub) renderVocabTable(sub,cls,data,total,false,y,m,students);
+  });
+};
+function renderVocabTable(area,cls,data,total,editable,year,month,fixedStudents){
+  const DOWS=['일','월','화','수','목','금','토'];
+  const lastDay=new Date(year,month,0).getDate();
+  const allDates=[];
+  for(let d=1;d<=lastDay;d++){
+    const iso=year+'-'+String(month).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    allDates.push({iso,d,dow:new Date(year,month-1,d).getDay()});
+  }
+  const students=fixedStudents||(data?Object.keys(data).sort():[]);
+  const hasScore={};
+  students.forEach(name=>{((data||{})[name]||[]).forEach(e=>{if(e.score)hasScore[e.date]=true;});});
+  function calcAvg(name){
+    const sc=[];
+    ((data||{})[name]||[]).forEach(e=>{const n=parseInt(e.score);const t=parseInt(total);if(!isNaN(n)&&!isNaN(t))sc.push(n/t*100);});
+    if(!sc.length)return'-';
+    return Math.round(sc.reduce((a,b)=>a+b,0)/sc.length)+'%';
+  }
+  let h=`<div style="margin-bottom:8px;font-size:12px;color:var(--text3)">총점 <strong style="color:var(--text)">${total}점</strong>${editable?' · 셀 클릭해서 입력':''}</div>`;
+  h+='<div style="overflow-x:auto"><table class="vocab-table"><thead>';
+  h+=`<tr><th class="nth">이름</th>`;
+  allDates.forEach(dt=>{
+    const wc=dt.dow===0?'color:var(--red)':dt.dow===6?'color:var(--blue)':'';
+    const hasBg=hasScore[dt.iso]?'background:var(--blue-bg);':'';
+    h+=`<th style="${hasBg}${wc};min-width:30px;font-weight:${hasScore[dt.iso]?700:400}">${dt.d}</th>`;
+  });
+  h+=`<th style="min-width:36px">평균</th></tr>`;
+  h+=`<tr><th class="nth" style="font-size:10px;color:var(--text3);font-weight:400">요일</th>`;
+  allDates.forEach(dt=>{
+    const wc=dt.dow===0?'color:var(--red)':dt.dow===6?'color:var(--blue)':'color:var(--text3)';
+    const hasBg=hasScore[dt.iso]?'background:var(--blue-bg);':'';
+    h+=`<th style="${hasBg}${wc};font-size:10px;font-weight:400">${DOWS[dt.dow]}</th>`;
+  });
+  h+=`<th></th></tr></thead><tbody>`;
+  if(!students.length){h+=`<tr><td colspan="${allDates.length+2}" class="empty">학생이 없어요</td></tr>`;}
+  else{
+    students.forEach(name=>{
+      h+=`<tr><td class="ntd">${name}</td>`;
+      const sm={}; ((data||{})[name]||[]).forEach(e=>{sm[e.date]=e;});
+      allDates.forEach(dt=>{
+        const e=sm[dt.iso];
+        const hasBg=hasScore[dt.iso]?'background:#fafff8;':'';
+        if(!e||!e.score){
+          if(editable) h+=`<td class="sc2" style="${hasBg}color:var(--border2)" data-cls="${cls}" data-name="${name}" data-date="${dt.iso}">+</td>`;
+          else h+=`<td style="${hasBg}color:var(--border2)">-</td>`;
+        } else if(e.special){
+          h+=`<td class="abtd" style="${hasBg}">${e.score}</td>`;
+        } else {
+          const n=parseInt(e.score);const t=parseInt(total);const pct=(!isNaN(n)&&!isNaN(t))?n/t*100:null;
+          const col=pct===null?'var(--text)':pct>=90?'var(--green)':pct<70?'var(--red)':'var(--text)';
+          const bg=pct===null?hasBg:pct>=90?'background:var(--green-bg);':pct<70?'background:var(--red-bg);':hasBg;
+          if(editable) h+=`<td class="sc2" style="${bg}color:${col};font-weight:700" data-cls="${cls}" data-name="${name}" data-date="${dt.iso}">${e.score}</td>`;
+          else h+=`<td style="${bg}color:${col};font-weight:700">${e.score}</td>`;
+        }
+      });
+      h+=`<td class="atd">${calcAvg(name)}</td></tr>`;
+    });
+  }
+  h+='</tbody></table></div>'; area.innerHTML=h;
+  if(editable){ area.querySelectorAll('.sc2').forEach(td=>td.addEventListener('click',()=>activateSc(td))); }
+}
+function activateSc(td){
+  const act=document.querySelector('.sc2.ed2');
+  if(act&&act!==td) saveSc(act);
+  if(td.classList.contains('ed2')) return;
+  const cls=td.dataset.cls; const name=td.dataset.name; const date=td.dataset.date;
+  const cd=vCurData();
+  let entry=null; ((cd[cls]||{})[name]||[]).forEach(e=>{if(e.date===date)entry=e;});
+  const cur=(entry&&entry.score&&SPECIALS.indexOf(entry.score)<0)?entry.score:'';
+  td.classList.add('ed2');
+  td.innerHTML=`<input type="text" value="${cur}" maxlength="10">`;
+  const inp=td.querySelector('input'); inp.focus(); inp.select();
+  td._vm={cls,name,date};
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();saveSc(td);moveScRight(td);}
+    if(e.key==='Escape'){e.preventDefault();cancelSc(td,entry);}
+    if(e.key==='Tab'){e.preventDefault();saveSc(td);moveScRight(td);}
+  });
+  inp.addEventListener('blur',()=>{setTimeout(()=>{if(td.classList.contains('ed2'))saveSc(td);},120);});
+}
+function saveSc(td){
+  if(!td.classList.contains('ed2')) return;
+  const inp=td.querySelector('input'); if(!inp) return;
+  const val=inp.value.trim(); const {cls,name,date}=td._vm;
+  const cd=vCurData();
+  if(!cd[cls]) cd[cls]={}; if(!cd[cls][name]) cd[cls][name]=[];
+  const isSpecial=SPECIALS.indexOf(val)>=0;
+  let ex=null; cd[cls][name].forEach(e=>{if(e.date===date)ex=e;});
+  if(val===''){cd[cls][name]=cd[cls][name].filter(e=>e.date!==date);}
+  else if(ex){ex.score=val;ex.special=isSpecial?val:'';}
+  else{cd[cls][name].push({date,score:val,special:isSpecial?val:''});cd[cls][name].sort((a,b)=>a.date>b.date?1:-1);}
+  saveVocabToDb();
+  td.classList.remove('ed2');
+  const total=VOCAB_TOTALS[cls]||'?';
+  if(!val){td.innerHTML='+';td.style.color='var(--border2)';td.style.fontWeight='';td.style.background='';}
+  else if(isSpecial){td.innerHTML=val;td.style.color='var(--red)';td.style.fontWeight='600';td.style.background='var(--red-bg)';}
+  else{
+    const n=parseInt(val);const t=parseInt(total);const pct=(!isNaN(n)&&!isNaN(t))?n/t*100:null;
+    td.style.color=pct===null?'var(--text)':pct>=90?'var(--green)':pct<70?'var(--red)':'var(--text)';
+    td.style.background=pct===null?'':pct>=90?'var(--green-bg)':pct<70?'var(--red-bg)':'';
+    td.style.fontWeight='700'; td.innerHTML=val;
+  }
+  updateAvg(td,cls,name,total);
+}
+function updateAvg(td,cls,name,total){
+  const row=td.closest('tr'); if(!row) return;
+  const atd=row.querySelector('.atd'); if(!atd) return;
+  const sc=[]; ((vCurData()[cls]||{})[name]||[]).forEach(e=>{const n=parseInt(e.score);const t=parseInt(total);if(!isNaN(n)&&!isNaN(t))sc.push(n/t*100);});
+  atd.textContent=sc.length?Math.round(sc.reduce((a,b)=>a+b,0)/sc.length)+'%':'-';
+}
+function cancelSc(td,entry){td.classList.remove('ed2');td.innerHTML=entry?entry.score:'+';}
+function moveScRight(td){const cells=Array.from(document.querySelectorAll('.sc2'));const idx=cells.indexOf(td);if(idx>=0&&idx<cells.length-1)setTimeout(()=>activateSc(cells[idx+1]),30);}
+document.addEventListener('click',e=>{if(!e.target.closest('.sc2')){const act=document.querySelector('.sc2.ed2');if(act)saveSc(act);}});
+
+// 총점 설정
+window.openVocabSettings=function(){
+  const clsList=[...new Set(TD.map(r=>r.cls))].sort();
+  $('vsettings-list').innerHTML=clsList.map(cls=>`<div class="frow2"><label>${cls}</label>
+    <div style="display:flex;align-items:center;gap:6px">
+      <input type="number" id="vt-input-${CSS.escape(cls)}" value="${VOCAB_TOTALS[cls]||''}" placeholder="예: 30" style="width:80px">
+      <span style="color:var(--text2);font-size:13px">점</span>
+      <button class="btn sm" data-cls="${cls}" onclick="saveVTotal(this)">저장</button>
+    </div></div>`).join('');
+  openOv('ov-vsettings');
+};
+window.saveVTotal=async function(btn){
+  const cls=btn.getAttribute('data-cls');
+  const val=parseInt(document.getElementById('vt-input-'+CSS.escape(cls)).value);
+  if(!val||val<1){alert('올바른 숫자를 입력해주세요');return;}
+  VOCAB_TOTALS[cls]=val;
+  await saveVocabToDb();
+  alert(cls+' 총점을 '+val+'점으로 저장했어요!');
+};
+
+// ── 퇴원생 인쇄/CSV ──
+window.doPrint=function(){
+  if(!WD.length){alert('퇴원생이 없어요');return;}
+  const d=new Date();
+  $('print-date').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 출력';
+  $('print-count').textContent=WD.length;
+  $('print-tbody').innerHTML=WD.map((r,i)=>`<tr>
+    <td style="border:1px solid #ccc;padding:6px 10px">${i+1}</td>
+    <td style="border:1px solid #ccc;padding:6px 10px">${r.cls||''}</td>
+    <td style="border:1px solid #ccc;padding:6px 10px;font-weight:600">${r.name}</td>
+    <td style="border:1px solid #ccc;padding:6px 10px">${r.phone||'-'}</td>
+    <td style="border:1px solid #ccc;padding:6px 10px">${(r.fee||0).toLocaleString()}원</td>
+    <td style="border:1px solid #ccc;padding:6px 10px">${r.withdrawDate||'-'}</td>
+  </tr>`).join('');
+  $('print-area').style.display='block';
+  window.print();
+  $('print-area').style.display='none';
+};
+window.downloadCSV=function(){
+  if(!WD.length){alert('퇴원생이 없어요');return;}
+  const header=['번호','반','이름','연락처','수업료','퇴원일'];
+  const rows=WD.map((r,i)=>[i+1,r.cls||'',r.name,r.phone||'',(r.fee||0),r.withdrawDate||'']);
+  const csv='\uFEFF'+[header,...rows].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); const d=new Date();
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`봄날_퇴원생_${d.getFullYear()}년${d.getMonth()+1}월${d.getDate()}일.csv`;
+  a.click();
+};
+</script>
+</body>
+</html>
