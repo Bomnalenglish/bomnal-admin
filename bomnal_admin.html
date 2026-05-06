@@ -1,0 +1,3116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봄날 English 관리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f5;color:#1a1a1a;font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;background:#fff;padding:1rem 1.25rem;border-radius:12px;border:1px solid #e5e5e5;flex-wrap:wrap;gap:10px}
+.header h1{font-size:18px;font-weight:600}
+.header-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e5e5e5;background:#fff;padding:.75rem 1rem 0;border-radius:12px 12px 0 0;flex-wrap:wrap}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500}
+.tab.on{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:600}
+.tab:hover:not(.on){color:#333;background:#f9f9f9}
+.panel-wrap{background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e5e5;border-top:none;padding:1.25rem}
+.panel{display:none}.panel.on{display:block}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+.scard{background:#f9f9f9;border-radius:8px;padding:12px 14px;border:1px solid #efefef}
+.slabel{font-size:12px;color:#888;margin-bottom:4px}
+.sval{font-size:22px;font-weight:600}
+.sval.g{color:#0a7a5a}.sval.r{color:#c0392b}.sval.b{color:#1a6fb5}
+.pbar{width:100%;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:1rem}
+.pfill{height:100%;background:#1D9E75;border-radius:3px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:140px;max-width:200px;padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;outline:none}
+.toolbar select{padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;outline:none;cursor:pointer}
+.btn{padding:8px 14px;font-size:13px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer;font-weight:500}
+.btn:hover{background:#f5f5f5}
+.btn.pri{background:#1a1a1a;color:#fff;border-color:#1a1a1a}.btn.pri:hover{background:#333}
+.btn.blue{background:#1a6fb5;color:#fff;border-color:#1a6fb5}.btn.blue:hover{background:#155fa0}
+.btn.red{border-color:#e74c3c;color:#c0392b}.btn.red:hover{background:#fdecea}
+.btn.grn{border-color:#27ae60;color:#1e8449}.btn.grn:hover{background:#eafaf1}
+.btn.sm{padding:5px 11px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px;font-size:12px;font-weight:600;color:#888;border-bottom:1.5px solid #e5e5e5;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:hover td{background:#fafafa}
+.ck{width:28px;height:28px;border-radius:50%;border:1.5px solid #ddd;background:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+.ck.on{background:#e8f8f2;border-color:#27ae60;color:#1e8449}
+.badge{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.paid{background:#e8f8f2;color:#0a7a5a}
+.badge.unpaid{background:#fdecea;color:#c0392b}
+.mb{display:inline-flex;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;user-select:none;align-items:center;gap:2px}
+.mb.M입금{background:#e8f0fb;color:#1a4fa0}
+.mb.M결제선생{background:#eeecfd;color:#4a3ab5}
+.mb.M현장카드{background:#fef5e7;color:#a04000}
+.dbtn{display:inline-flex;align-items:center;padding:4px 9px;border-radius:6px;font-size:12px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#888;white-space:nowrap}
+.dbtn.set{color:#1a1a1a;border-color:#aaa;font-weight:500}
+.dbtn:hover{background:#f5f5f5}
+.new-tag{display:inline-block;font-size:10px;background:#e8f0fb;color:#1a4fa0;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600}
+.empty{text-align:center;padding:2.5rem;color:#aaa;font-size:13px}
+/* 결제방식 드롭다운 */
+.mpop-wrap{position:relative;display:inline-block}
+.mpop{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:#fff;border:1px solid #ddd;border-radius:10px;padding:5px;box-shadow:0 4px 20px rgba(0,0,0,.14);min-width:110px}
+.mpop.on{display:block}
+.mpop button{display:block;width:100%;padding:7px 10px;text-align:left;font-size:13px;font-weight:600;border:none;background:none;border-radius:6px;cursor:pointer}
+.mpop button:hover{background:#f5f5f5}
+.mpop .o입금{color:#1a4fa0}.mpop .o결제선생{color:#4a3ab5}.mpop .o현장카드{color:#a04000}
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:440px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal.wide{width:600px}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:1.25rem}
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:12px;color:#888;margin-bottom:4px;font-weight:500}
+.frow input,.frow select{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;outline:none}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem}
+.msel{display:flex;gap:6px}
+.mopt{flex:1;padding:9px 4px;text-align:center;font-size:13px;font-weight:500;border-radius:8px;border:1.5px solid #ddd;cursor:pointer;color:#888;background:#fff}
+.mopt.S입금{background:#e8f0fb;color:#1a4fa0;border-color:#7aa3e0;font-weight:600}
+.mopt.S결제선생{background:#eeecfd;color:#4a3ab5;border-color:#a79ee0;font-weight:600}
+.mopt.S현장카드{background:#fef5e7;color:#a04000;border-color:#f0c070;font-weight:600}
+/* 달력 */
+.cal-box{background:#fff;border-radius:14px;padding:1.25rem;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav{background:none;border:none;cursor:pointer;font-size:20px;color:#888;padding:2px 8px;border-radius:6px;line-height:1}
+.cal-nav:hover{background:#f5f5f5}
+.cal-title{font-size:14px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cn{text-align:center;font-size:11px;color:#aaa;padding:4px 0;font-weight:600}
+.cd{text-align:center;font-size:13px;padding:6px 2px;border-radius:6px;cursor:pointer}
+.cd:hover{background:#f0f0f0}
+.cd.today{font-weight:700;color:#1a6fb5}
+.cd.sel{background:#1a1a1a;color:#fff;border-radius:50%}
+.cd.emp{cursor:default}.cd.emp:hover{background:none}
+.cal-foot{display:flex;justify-content:space-between;margin-top:12px;gap:8px}
+/* 이전달 기록 */
+.hist-select{display:flex;gap:8px;margin-bottom:1.25rem;align-items:center;flex-wrap:wrap}
+.month-chip{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid #ddd;background:#fff;cursor:pointer;color:#888}
+.month-chip.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.hist-stat{display:flex;gap:16px;margin-bottom:1rem;padding:12px 14px;background:#f9f9f9;border-radius:8px;border:1px solid #efefef;flex-wrap:wrap}
+.hist-stat span{font-size:13px;color:#888}
+.hist-stat strong{color:#1a1a1a}
+/* 다음달 확인 모달 */
+.next-month-info{background:#f0f7ff;border-radius:8px;padding:12px 14px;margin-bottom:1rem;font-size:13px;color:#1a4fa0;border:1px solid #c0d8f5}
+/* 인쇄 */
+@media print{body>*{display:none!important}#print-area{display:block!important}}
+/* 결석 달력 레이아웃 */
+.abs-layout{display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start}
+.abs-cal-wrap{min-width:0}
+.abs-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.abs-day-name{text-align:center;font-size:12px;font-weight:600;color:#888;padding:6px 0;background:#f9f9f9;border-radius:6px}
+.abs-cell{min-height:72px;border:1px solid #efefef;border-radius:8px;padding:6px;background:#fff;cursor:pointer;transition:background .1s;overflow:hidden}
+.abs-cell:hover{background:#f5f5f5}
+.abs-cell.today{border-color:#1a6fb5;background:#f0f7ff}
+.abs-cell.other-month{background:#fafafa;opacity:.45;cursor:default;pointer-events:none}
+.abs-date{font-size:12px;font-weight:700;margin-bottom:4px}
+.abs-date.sun{color:#c0392b}.abs-date.sat{color:#1a6fb5}
+.abs-date.today-num{color:#1a6fb5}
+/* 이름 뱃지 - 작게 여러개 */
+.abs-tag{display:flex;align-items:center;gap:2px;background:#fdecea;color:#c0392b;border-radius:3px;padding:2px 5px;font-size:11px;font-weight:600;margin:1px 0;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden}
+.abs-tag:hover{background:#f5b8b8}
+.abs-tag .abs-name{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.abs-tag .abs-x{background:none;border:none;cursor:pointer;color:#c0392b;font-size:11px;padding:0;flex-shrink:0;line-height:1}
+.abs-tooltip{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:140px}
+.abs-tooltip .tt-reason{font-weight:600;margin-bottom:2px}
+.abs-tooltip .tt-memo{color:#bbb;font-size:11px}
+.abs-tooltip .tt-del{display:block;margin-top:6px;color:#ff7070;font-size:11px;cursor:pointer;border:none;background:none;padding:0;width:100%;text-align:left}
+.abs-tag:hover .abs-tooltip{display:block}
+/* 사이드 패널 */
+.abs-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:1rem}
+.abs-side-box{background:#f9f9f9;border:1px solid #efefef;border-radius:10px;padding:12px}
+.abs-side-title{font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
+.abs-side-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.abs-side-item:last-child{border-bottom:none;padding-bottom:0}
+.abs-side-date{font-size:11px;color:#888;white-space:nowrap;min-width:36px;padding-top:1px}
+.abs-side-name{font-size:13px;font-weight:600;color:#1a1a1a}
+.abs-side-reason{font-size:11px;color:#888;margin-top:1px}
+.abs-side-del{background:none;border:none;cursor:pointer;color:#ddd;font-size:12px;margin-left:auto;padding:0;flex-shrink:0}
+.abs-side-del:hover{color:#c0392b}
+.abs-side-empty{font-size:12px;color:#bbb;text-align:center;padding:8px 0}
+/* 단어시험 */
+.vocab-table{width:100%;border-collapse:collapse;font-size:12px}
+.vocab-table th{padding:7px 8px;background:#f9f9f9;border:1px solid #e5e5e5;text-align:center;font-weight:600;color:#555;white-space:nowrap}
+.vocab-table td{padding:6px 8px;border:1px solid #efefef;text-align:center;color:#1a1a1a}
+.vocab-table td.name{text-align:left;font-weight:600;background:#fafafa;white-space:nowrap}
+.vocab-table td.avg{background:#f0f7e8;font-weight:600;color:#0a7a5a}
+.vocab-table td.absent-cell{color:#c0392b;font-style:italic}
+.score-cell{cursor:pointer;position:relative}.score-cell:hover{background:#e8f4ff}
+.score-cell.editing{padding:0!important;background:#fff!important}
+.score-cell input{width:100%;height:100%;min-height:28px;border:2px solid #1a6fb5;border-radius:3px;text-align:center;font-size:12px;font-weight:600;padding:2px 3px;outline:none;box-sizing:border-box;background:#fff}
+
+
+/* 공지사항 */
+.notice-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.notice-card.unread{border-left:4px solid #1a5fa0;background:#f8fbff}
+.notice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:10px}
+.notice-title2{font-size:15px;font-weight:700;color:#1a1916}
+.notice-meta2{font-size:12px;color:#9c9890;margin-top:3px}
+.notice-body2{font-size:13px;color:#1a1916;line-height:1.7;white-space:pre-wrap;margin-bottom:.75rem}
+.notice-targets{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.ntag{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#e8f0fb;color:#1a5fa0}
+.ntag.all{background:#e8f5ef;color:#2d7a5f}
+.notice-reads{display:flex;flex-wrap:wrap;gap:5px;padding-top:.75rem;border-top:1px solid #e8e6e0}
+.rchip2{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#e8f5ef;color:#2d7a5f}
+.uchip2{padding:2px 9px;border-radius:20px;font-size:11px;background:#f2f1ed;color:#9c9890}
+.notice-del-btn{padding:3px 9px;font-size:11px;border:1px solid #c0392b;color:#c0392b;background:none;border-radius:5px;cursor:pointer}
+.notice-del-btn:hover{background:#fdecea}
+
+/* 시간표 */
+.schedule-grid{display:grid;gap:10px;grid-auto-columns:minmax(160px,1fr)}
+.schedule-teacher-col{min-width:160px}
+.schedule-teacher-header{background:#1a1916;color:#fff;padding:8px 12px;border-radius:8px 8px 0 0;font-size:13px;font-weight:700;text-align:center}
+.schedule-class-card{background:#fff;border:1px solid #e8e6e0;border-radius:0 0 4px 4px;margin-top:2px;padding:10px 12px;cursor:pointer;transition:background .1s;border-left:3px solid #1a5fa0}
+.schedule-class-card:hover{background:#f5f5f5}
+.schedule-class-card.editing{background:#fffbe6;border-left-color:#f0a500}
+.schedule-class-name{font-size:13px;font-weight:700;color:#1a1916;margin-bottom:3px}
+.schedule-class-time{font-size:11px;color:#1a5fa0;font-weight:600;margin-bottom:4px}
+.schedule-class-students{font-size:11px;color:#888;line-height:1.5}
+.schedule-edit-area{margin-top:6px;display:none}
+.schedule-edit-area textarea{width:100%;font-size:11px;padding:5px;border:1px solid #ddd;border-radius:4px;resize:vertical;font-family:inherit;min-height:60px}
+.schedule-edit-area .edit-btns{display:flex;gap:5px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div>
+    <h1>봄날 English 관리</h1>
+    <div style="font-size:13px;color:#888;margin-top:2px" id="hdr-month"></div>
+  </div>
+  <div class="header-btns">
+    <button class="btn blue" onclick="openNextMonth()">다음 달로 넘기기 →</button>
+    <button class="btn pri" onclick="openReg()">+ 신규 등록</button>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tab on" onclick="sw('notice',this)">공지사항 <span id="nc" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span></button>
+  <button class="tab" onclick="sw('schedule',this)">📅 시간표</button>
+  <button class="tab" onclick="sw('junior',this)">초중등부</button>
+  <button class="tab" onclick="sw('senior',this)">고등부</button>
+  <button class="tab" onclick="sw('members',this)">회원명부</button>
+  <button class="tab" onclick="sw('book',this)">교재비</button>
+  <button class="tab" onclick="sw('summary',this)">현황 요약</button>
+  <button class="tab" onclick="sw('absent',this)">결석예정자</button>
+  <button class="tab" onclick="sw('vocab',this)">단어시험</button>
+  <button class="tab" onclick="sw('history',this)">이전 기록 <span id="hc" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span></button>
+  <button class="tab" onclick="sw('withdrawn',this)">퇴원생 <span id="wc" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span></button>
+  <button class="tab" onclick="sw('settings',this)">⚙ 설정</button>
+</div>
+<div class="panel-wrap">
+
+<!-- 수업료 -->
+<!-- 공지사항 패널 -->
+<div class="panel" id="panel-notice">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+    <div style="font-size:15px;font-weight:700">공지사항</div>
+    <button class="btn pri" onclick="openWriteNotice()">+ 공지 작성</button>
+  </div>
+  <div id="notice-list"><div class="empty">아직 공지가 없어요</div></div>
+</div>
+
+<!-- 시간표 -->
+<div class="panel" id="panel-schedule">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+    <div style="font-size:15px;font-weight:700">수업 시간표</div>
+    <div style="font-size:12px;color:#aaa">← 가로 스크롤로 전체 확인</div>
+  </div>
+  <div id="schedule-area" style="overflow-x:auto"></div>
+</div>
+
+<div class="panel" id="panel-junior">
+  <div class="sgrid">
+    <div class="scard"><div class="slabel">재원생</div><div class="sval" id="st">0명</div></div>
+    <div class="scard"><div class="slabel">납부 완료</div><div class="sval g" id="sp">0명</div></div>
+    <div class="scard"><div class="slabel">미납</div><div class="sval r" id="su">0명</div></div>
+    <div class="scard"><div class="slabel">수납 총액</div><div class="sval" id="sa" style="font-size:16px">0</div></div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pf" style="width:0%"></div></div>
+  <div class="toolbar">
+    <input type="text" placeholder="이름 검색..." id="q-name" oninput="rt()">
+    <select id="q-status" onchange="rt()"><option value="">전체 상태</option><option>납부</option><option>미납</option></select>
+    <select id="q-cls" onchange="rt()"><option value="">전체 반</option></select>
+  </div>
+  <div style="overflow-x:auto">
+  <table style="min-width:660px">
+    <colgroup>
+      <col style="width:42px"><col style="width:88px"><col style="width:68px"><col style="width:100px">
+      <col style="width:76px"><col style="width:96px"><col style="width:88px"><col style="width:54px"><col><col style="width:48px"><col style="width:48px">
+    </colgroup>
+    <thead><tr><th>납부</th><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th><th>수정</th><th>퇴원</th></tr></thead>
+    <tbody id="tb-j"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- 고등부 -->
+<div class="panel" id="panel-senior">
+  <div class="sgrid">
+    <div class="scard"><div class="slabel">재원생</div><div class="sval" id="st-s">0명</div></div>
+    <div class="scard"><div class="slabel">납부 완료</div><div class="sval g" id="sp-s">0명</div></div>
+    <div class="scard"><div class="slabel">미납</div><div class="sval r" id="su-s">0명</div></div>
+    <div class="scard"><div class="slabel">수납 총액</div><div class="sval" id="sa-s" style="font-size:16px">0</div></div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pf-s" style="width:0%"></div></div>
+  <div class="toolbar">
+    <input type="text" placeholder="이름 검색..." id="q-name-s" oninput="rt('senior')" style="max-width:180px;flex:1">
+    <select id="q-status-s" onchange="rt('senior')"><option value="">전체</option><option>납부</option><option>미납</option></select>
+    <select id="q-cls-s" onchange="rt('senior')"><option value="">전체 반</option></select>
+  </div>
+  <div style="overflow-x:auto">
+  <table style="min-width:680px">
+    <colgroup>
+      <col style="width:40px"><col style="width:88px"><col style="width:68px"><col style="width:102px">
+      <col style="width:78px"><col style="width:96px"><col style="width:88px"><col style="width:54px"><col><col style="width:46px"><col style="width:46px">
+    </colgroup>
+    <thead><tr><th>납부</th><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th><th>수정</th><th>퇴원</th></tr></thead>
+    <tbody id="tb-s"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- 회원명부 -->
+<div class="panel" id="panel-members">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:#888">전체 재원생 명단이에요. 이름 클릭하면 바로 수정할 수 있어요.</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="m-search" placeholder="이름 검색..." oninput="renderMembers()" style="padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;outline:none;width:160px">
+      <select id="m-cls" onchange="renderMembers()" style="padding:7px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;outline:none;cursor:pointer">
+        <option value="">전체 반</option>
+      </select>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+  <table id="members-table" style="min-width:540px">
+    <colgroup>
+      <col style="width:40px"><col style="width:110px"><col style="width:90px"><col><col style="width:50px">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th><th>반</th><th>이름</th><th>연락처</th><th>수정</th>
+      </tr>
+    </thead>
+    <tbody id="tb-members"></tbody>
+  </table>
+  </div>
+  <div style="margin-top:1rem;font-size:12px;color:#aaa" id="members-count"></div>
+</div>
+
+<!-- 교재비 -->
+<div class="panel" id="panel-book">
+  <div class="sgrid">
+    <div class="scard" onclick="setBookFilter('')" style="cursor:pointer" title="전체 보기">
+      <div class="slabel">총 주문</div><div class="sval" id="book-total">0건</div>
+      <div style="font-size:10px;color:#aaa;margin-top:4px">클릭 → 전체</div>
+    </div>
+    <div class="scard" onclick="setBookFilter('입금')" style="cursor:pointer" title="입금 완료만 보기">
+      <div class="slabel">입금 완료</div><div class="sval g" id="book-paid">0건</div>
+      <div style="font-size:10px;color:#aaa;margin-top:4px">클릭 → 입금만</div>
+    </div>
+    <div class="scard" onclick="setBookFilter('미입금')" style="cursor:pointer" title="미입금만 보기">
+      <div class="slabel">미입금</div><div class="sval r" id="book-unpaid">0건</div>
+      <div style="font-size:10px;color:#aaa;margin-top:4px">클릭 → 미입금만</div>
+    </div>
+    <div class="scard"><div class="slabel">교재비 총액</div><div class="sval" id="book-amt" style="font-size:16px">0</div></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+    <button class="btn pri" onclick="openBookAdd()">+ 교재 추가</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" placeholder="이름/교재 검색..." id="q-book" oninput="fb()" style="flex:1;max-width:220px">
+    <select id="q-book-s" onchange="fb()"><option value="">전체</option><option>입금</option><option>미입금</option></select>
+    <select id="q-book-t" onchange="fb()"><option value="">전체 담당</option><option>원장님</option>
+<option>황현아</option>
+<option>이설경</option>
+<option>양준식</option>
+<option>정상은</option>
+<option>한유미</option>
+<option>이민우</option>
+<option>임채은</option>
+<option>황호영</option></select>
+  </div>
+  <div style="overflow-x:auto">
+  <table style="min-width:640px">
+    <colgroup>
+      <col style="width:40px"><col style="width:80px"><col><col style="width:74px"><col style="width:76px"><col style="width:80px"><col style="width:70px"><col style="width:60px">
+    </colgroup>
+    <thead><tr><th>입금</th><th>이름</th><th>교재</th><th>금액</th><th>입고일</th><th>결제일</th><th>담당</th><th>문자</th></tr></thead>
+    <tbody id="tb-b"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- 현황 요약 -->
+<div class="panel" id="panel-summary">
+  <div class="sgrid" style="grid-template-columns:1fr 1fr">
+    <div class="scard">
+      <div class="slabel">수업료 납부율</div>
+      <div class="sval g" id="sum-rate">0%</div>
+      <div class="pbar" style="margin-top:8px;margin-bottom:0"><div class="pfill" id="sum-bar" style="width:0%"></div></div>
+    </div>
+    <div class="scard"><div class="slabel">이번달 신규</div><div class="sval b" id="sum-new">0명</div></div>
+  </div>
+  <div style="margin-top:1.5rem">
+    <div style="font-size:15px;font-weight:600;margin-bottom:1rem">미납자 목록</div>
+    <table><thead><tr><th>이름</th><th>반</th><th>수업료</th><th>메모</th></tr></thead><tbody id="tb-u"></tbody></table>
+  </div>
+</div>
+
+<!-- 이전 기록 -->
+<div class="panel" id="panel-history">
+  <div id="hist-empty" class="empty" style="padding:2rem">아직 이전 달 기록이 없어요.<br>다음 달로 넘기면 이곳에 자동 저장돼요.</div>
+  <div id="hist-content" style="display:none">
+    <div class="hist-select" id="hist-chips"></div>
+    <div class="hist-stat" id="hist-stat"></div>
+    <div style="overflow-x:auto">
+    <table style="min-width:580px">
+      <colgroup>
+        <col style="width:92px"><col style="width:70px"><col style="width:108px">
+        <col style="width:80px"><col style="width:100px"><col style="width:90px"><col style="width:60px"><col>
+      </colgroup>
+      <thead><tr><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>결제방식</th><th>납부일</th><th>상태</th><th>메모</th></tr></thead>
+      <tbody id="tb-hist"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- 퇴원생 -->
+<div class="panel" id="panel-withdrawn">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:#888">퇴원 처리된 학생 목록이에요. 복귀 버튼으로 재원생으로 되돌릴 수 있어요.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn sm" onclick="downloadCSV()">CSV 다운로드</button>
+      <button class="btn sm pri" onclick="doPrint()">인쇄하기</button>
+    </div>
+  </div>
+  <table>
+    <colgroup>
+      <col style="width:92px"><col style="width:70px"><col style="width:110px"><col style="width:82px"><col style="width:82px"><col><col style="width:60px">
+    </colgroup>
+    <thead><tr><th>반</th><th>이름</th><th>연락처</th><th>수업료</th><th>퇴원일</th><th>메모</th><th>복귀</th></tr></thead>
+    <tbody id="tb-w"></tbody>
+  </table>
+  <div id="w-empty" class="empty">퇴원한 학생이 없어요</div>
+</div>
+
+<!-- 설정 -->
+<div class="panel" id="panel-settings">
+  <div style="max-width:600px">
+    <!-- 선생님 목록 관리 -->
+    <div style="background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:15px;font-weight:700;margin-bottom:1rem">선생님 목록 관리</div>
+      <div id="teacher-list" style="margin-bottom:1rem"><div style="color:#aaa;font-size:13px">불러오는 중...</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="new-teacher-name" placeholder="선생님 이름 (예: 김지수)" style="flex:1;min-width:120px;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
+        <select id="new-teacher-role" style="padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+          <option value="강사">강사</option>
+          <option value="온라인">온라인</option>
+          <option value="데스크">데스크</option>
+          <option value="실장">실장</option>
+        </select>
+        <button class="btn pri" onclick="addTeacher()">추가</button>
+      </div>
+    </div>
+    <!-- 계좌 정보 -->
+    <div style="background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:15px;font-weight:700;margin-bottom:1rem">결제 계좌 정보</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:4px">은행</div>
+        <input type="text" id="account-bank" placeholder="카카오뱅크" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:4px">계좌번호</div>
+        <input type="text" id="account-number" placeholder="3333-XX-XXXXXXX" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:4px">예금주</div>
+        <input type="text" id="account-holder" placeholder="예금주명" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
+      </div>
+      <button class="btn pri" onclick="saveAccountInfo()">저장</button>
+      <div style="margin-top:.75rem;font-size:12px;background:#e8f5ef;color:#2d7a5f;padding:8px 12px;border-radius:6px;display:none" id="account-saved">✓ 저장됐어요!</div>
+    </div>
+    <!-- 문자 템플릿 미리보기 -->
+    <div style="background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1.25rem">
+      <div style="font-size:15px;font-weight:700;margin-bottom:.5rem">문자 템플릿 미리보기</div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:.75rem">계좌 정보 저장 후 문자에 자동 반영돼요</div>
+      <div style="background:#f5f5f5;border-radius:8px;padding:12px;font-size:13px;line-height:1.8;color:#333;white-space:pre-wrap" id="sms-template-preview"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 결석예정자 -->
+<div class="panel" id="panel-absent">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="cal-nav" onclick="absentMove(-1)" style="font-size:20px;border:1px solid #ddd;border-radius:8px;padding:4px 10px;background:#fff;cursor:pointer">&#8249;</button>
+      <span style="font-size:16px;font-weight:600" id="absent-month-title"></span>
+      <button class="cal-nav" onclick="absentMove(1)" style="font-size:20px;border:1px solid #ddd;border-radius:8px;padding:4px 10px;background:#fff;cursor:pointer">&#8250;</button>
+    </div>
+    <button class="btn pri" onclick="openAbsentAdd()">+ 결석 예정 추가</button>
+  </div>
+  <div class="abs-layout">
+    <div class="abs-cal-wrap" id="absent-calendar"></div>
+    <div class="abs-side">
+      <div class="abs-side-box">
+        <div class="abs-side-title">오늘 결석</div>
+        <div id="side-today"></div>
+      </div>
+      <div class="abs-side-box">
+        <div class="abs-side-title">이번 주 결석</div>
+        <div id="side-week"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 단어시험 -->
+<div class="panel" id="panel-vocab">
+  <!-- 헤더: 월 네비 + 반 선택 + 버튼들 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="cal-nav" onclick="vocabMonthMove(-1)" style="font-size:20px;border:1px solid #ddd;border-radius:8px;padding:4px 10px;background:#fff;cursor:pointer">&#8249;</button>
+      <span style="font-size:16px;font-weight:600" id="vocab-month-title"></span>
+      <button class="cal-nav" onclick="vocabMonthMove(1)" style="font-size:20px;border:1px solid #ddd;border-radius:8px;padding:4px 10px;background:#fff;cursor:pointer">&#8250;</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn" onclick="openVocabSettings()">&#9881; 총점 설정</button>
+      <button class="btn" onclick="openVocabClassMgr()">+ 반 관리</button>
+      <button class="btn pri" onclick="openVocabAdd()">+ 점수 입력</button>
+    </div>
+  </div>
+  <!-- 이전 달 기록 칩 -->
+  <div id="vocab-hist-chips" style="display:none;margin-bottom:1rem;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:12px;color:#888;margin-right:4px">이전 기록:</span>
+    <div id="vocab-hist-chip-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div id="vocab-area"><div class="empty">로딩 중...</div></div>
+</div>
+
+
+</div>
+</div>
+
+<!-- 인쇄 영역 -->
+<div id="print-area" style="display:none;padding:2rem">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;border-bottom:2px solid #000;padding-bottom:.75rem">
+    <div>
+      <div style="font-size:20px;font-weight:700">봄날 English — 퇴원생 명부</div>
+      <div style="font-size:13px;color:#555;margin-top:4px" id="print-date"></div>
+    </div>
+    <div style="font-size:13px;color:#555">총 <span id="print-count">0</span>명</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:#f5f5f5">
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">번호</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">반</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">이름</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">연락처</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">수업료</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">퇴원일</th>
+      <th style="border:1px solid #ccc;padding:7px 10px;text-align:left">메모</th>
+    </tr></thead>
+    <tbody id="print-tbody"></tbody>
+  </table>
+  <div style="margin-top:3rem;display:flex;justify-content:flex-end;gap:4rem">
+    <div style="font-size:13px">원장 확인: _______________</div>
+    <div style="font-size:13px">날짜: _______________</div>
+  </div>
+</div>
+
+<!-- 결석예정자 추가 모달 -->
+<div class="modal-bg" id="ov-absent">
+  <div class="modal">
+    <h3>결석 예정 추가</h3>
+    <div class="frow"><label>날짜 *</label><input type="date" id="ab-date"></div>
+    <div class="frow">
+      <label>학생 선택 *</label>
+      <select id="ab-student"><option value="">학생 선택...</option></select>
+    </div>
+    <div class="frow"><label>사유</label>
+      <select id="ab-reason">
+        <option value="개인사정">개인사정</option>
+        <option value="병결">병결</option>
+        <option value="학교행사">학교행사</option>
+        <option value="수학여행">수학여행</option>
+        <option value="시험">시험</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="frow"><label>메모</label><input type="text" id="ab-memo" placeholder="추가 메모"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-absent')">취소</button>
+      <button class="btn pri" onclick="addAbsent()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 단어시험 점수 입력 모달 -->
+<div class="modal-bg" id="ov-vocab">
+  <div class="modal">
+    <h3>단어시험 점수 입력</h3>
+    <div class="fgrid">
+      <div class="frow"><label>날짜 *</label><input type="date" id="vc-date"></div>
+      <div class="frow"><label>반 *</label>
+        <select id="vc-cls"><option value="">반 선택...</option></select>
+      </div>
+    </div>
+    <div class="frow"><label>학생 *</label>
+      <select id="vc-student"><option value="">학생 선택...</option></select>
+    </div>
+    <div class="fgrid">
+      <div class="frow">
+        <label>점수 (숫자만) *</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="vc-score" placeholder="28" style="flex:1;min-width:0">
+          <span style="color:#888;font-size:13px">/ <span id="vc-total-display">?</span></span>
+        </div>
+      </div>
+      <div class="frow"><label>특이사항</label>
+        <select id="vc-special">
+          <option value="">없음</option>
+          <option value="결석">결석</option>
+          <option value="조퇴">조퇴</option>
+          <option value="지각">지각</option>
+          <option value="부모님">부모님</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-vocab')">취소</button>
+      <button class="btn pri" onclick="addVocabScore()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 총점 설정 모달 -->
+<div class="modal-bg" id="ov-vocab-settings">
+  <div class="modal">
+    <h3>반별 총점 설정</h3>
+    <div style="font-size:13px;color:#888;margin-bottom:1rem">각 반의 단어시험 총점을 입력해주세요</div>
+    <div id="vocab-settings-list"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-vocab-settings')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학생 정보 수정 모달 -->
+<div class="modal-bg" id="ov-edit">
+  <div class="modal">
+    <h3>학생 정보 수정</h3>
+    <div class="fgrid">
+      <div class="frow"><label>이름 *</label><input type="text" id="e-name"></div>
+      <div class="frow"><label>반 *</label><input type="text" id="e-cls"></div>
+      <div class="frow"><label>부모님 연락처</label><input type="text" id="e-phone"></div>
+      <div class="frow"><label>수업료 *</label><input type="number" id="e-fee"></div>
+    </div>
+    <div class="frow">
+      <label>결제방식</label>
+      <div class="msel" id="msel-edit">
+        <button class="mopt" data-m="입금">입금</button>
+        <button class="mopt" data-m="결제선생">결제선생</button>
+        <button class="mopt" data-m="현장카드">현장카드</button>
+      </div>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>형제</label><input type="text" id="e-sib"></div>
+      <div class="frow"><label>메모</label><input type="text" id="e-memo"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-edit')">취소</button>
+      <button class="btn pri" onclick="saveEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 신규 등록 모달 -->
+<!-- 공지 작성 모달 -->
+<div class="modal-bg" id="ov-notice">
+  <div class="modal">
+    <h3>공지 작성</h3>
+    <div class="frow2">
+      <label>수신 대상</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;cursor:pointer">
+          <input type="checkbox" id="n-all" onchange="toggleAllTeachers(this)"> 전체
+        </label>
+        <div id="notice-teacher-list" style="display:flex;flex-wrap:wrap;gap:8px">
+          <!-- 선생님 목록은 설정에서 동적으로 관리 -->
+        </div>
+      </div>
+    </div>
+    <div class="frow2"><label>제목 *</label><input type="text" id="n-title" placeholder="공지 제목"></div>
+    <div class="frow2"><label>내용 *</label><textarea id="n-body" rows="5" placeholder="공지 내용을 입력하세요..." style="resize:vertical"></textarea></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-notice')">취소</button>
+      <button class="btn pri" onclick="saveNotice()">공지 올리기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 교재 추가 모달 -->
+<div class="modal-bg" id="ov-book">
+  <div class="modal">
+    <h3>교재 추가</h3>
+    <!-- 반 일괄 선택 -->
+    <div class="frow2">
+      <label>반 일괄 선택 <span style="font-size:10px;color:#aaa;font-weight:400">(반 전체 추가)</span></label>
+      <div style="display:flex;gap:6px">
+        <select id="b-cls-select" style="flex:1;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+          <option value="">반 선택...</option>
+        </select>
+        <button class="btn" onclick="addBookByClass()" style="white-space:nowrap;padding:9px 12px">반 전체 추가</button>
+      </div>
+    </div>
+    <!-- 선택된 학생 목록 -->
+    <div id="b-selected-students" style="display:none;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">추가할 학생 목록</div>
+      <div id="b-student-chips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+    </div>
+    <div class="fgrid2">
+      <div class="frow2">
+        <label>학생 개별 추가</label>
+        <div style="position:relative">
+          <input type="text" id="b-student-input" placeholder="이름 검색..." autocomplete="off" oninput="bookStudentSearch(this.value)" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
+          <div id="b-student-list" style="display:none;position:absolute;z-index:400;background:#fff;border:1px solid #e8e6e0;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;width:100%;margin-top:2px"></div>
+        </div>
+        <input type="hidden" id="b-student">
+      </div>
+      <div class="frow2">
+        <label>담당 선생님</label>
+        <select id="b-manager">
+          <option value="">선택...</option><option>원장님</option>
+<option>황현아</option>
+<option>이설경</option>
+<option>양준식</option>
+<option>정상은</option>
+<option>한유미</option>
+<option>이민우</option>
+<option>임채은</option>
+<option>황호영</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow2"><label>교재명 *</label><input type="text" id="b-book" placeholder="예: 주니어리딩튜터1(워크북포함)"></div>
+    <div class="fgrid2">
+      <div class="frow2"><label>금액</label><input type="number" id="b-amount" placeholder="27900"></div>
+      <div class="frow2">
+        <label>결제방식</label>
+        <select id="b-pay-type">
+          <option value="">선택...</option>
+          <option>계좌이체</option>
+          <option>현장카드</option>
+          <option>결제선생</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid2">
+      <div class="frow2"><label>문자 발송일</label><input type="date" id="b-date"></div>
+      <div class="frow2"><label>입고일 <span style="font-size:10px;color:#aaa;font-weight:400">(입고 후 입력)</span></label><input type="date" id="b-arrival" placeholder="입고 후 입력"></div>
+    </div>
+    <div class="frow2"><label>메모</label><input type="text" id="b-memo" placeholder="추가 메모"></div>
+    <!-- 문자 미리보기 -->
+    <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-top:.5rem">
+      <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">문자 미리보기</div>
+      <div id="b-sms-preview" style="font-size:12px;color:#333;line-height:1.7;white-space:pre-wrap"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-book')">취소</button>
+      <button class="btn" onclick="copyBookSms()" style="border-color:#2d7a5f;color:#2d7a5f">📋 문자 복사</button>
+      <button class="btn pri" onclick="addBook()">추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 문자 복사 모달 -->
+<div class="modal-bg" id="ov-sms">
+  <div class="modal">
+    <h3>📋 문자 내용</h3>
+    <div style="font-size:12px;color:#888;margin-bottom:8px">아래 내용을 길게 눌러서 복사하세요</div>
+    <textarea id="sms-content" rows="8" readonly style="width:100%;padding:10px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;line-height:1.7;background:#f9f9f9;resize:none;font-family:inherit"></textarea>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-sms')">닫기</button>
+      <button class="btn pri" onclick="doSelectAll()">전체 선택</button>
+    </div>
+  </div>
+</div>
+
+<!-- 수업 이동 모달 -->
+<div class="modal-bg" id="ov-schedule-move">
+  <div class="modal" style="max-width:400px">
+    <h3>수업 이동</h3>
+    <div id="move-card-preview" style="background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:1rem;font-size:13px"></div>
+    <div class="frow2">
+      <label>이동할 요일</label>
+      <select id="move-day" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+        <option value="월">월요일</option>
+        <option value="화">화요일</option>
+        <option value="수">수요일</option>
+        <option value="목">목요일</option>
+        <option value="금">금요일</option>
+      </select>
+    </div>
+    <div class="frow2">
+      <label>이동할 선생님</label>
+      <select id="move-teacher" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+      </select>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-schedule-move')">취소</button>
+      <button class="btn pri" onclick="doMoveSchedule()">이동하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="ov-reg">
+  <div class="modal">
+    <h3>신규 학생 등록</h3>
+    <div class="fgrid">
+      <div class="frow"><label>이름 *</label><input type="text" id="f-name" placeholder="홍길동"></div>
+      <div class="frow"><label>반 *</label><input type="text" id="f-cls" placeholder="종촌중3A"></div>
+      <div class="frow"><label>부모님 연락처</label><input type="text" id="f-phone" placeholder="010-0000-0000"></div>
+      <div class="frow"><label>수업료 *</label><input type="number" id="f-fee" placeholder="270000"></div>
+    </div>
+    <div class="frow">
+      <label>결제방식 *</label>
+      <div class="msel" id="msel-reg">
+        <button class="mopt" data-m="입금">입금</button>
+        <button class="mopt" data-m="결제선생">결제선생</button>
+        <button class="mopt" data-m="현장카드">현장카드</button>
+      </div>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>형제</label><input type="text" id="f-sib" placeholder="형제 이름"></div>
+      <div class="frow"><label>메모</label><input type="text" id="f-memo" placeholder="교과할인 등"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-reg')">취소</button>
+      <button class="btn pri" onclick="addStudent()">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 단어시험 반 관리 모달 -->
+<div class="modal-bg" id="ov-vocab-class">
+  <div class="modal">
+    <h3>단어시험 반 관리</h3>
+    <div style="font-size:13px;color:#888;margin-bottom:1rem">반을 추가하거나 이름을 변경할 수 있어요</div>
+    <!-- 새 반 추가 -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;align-items:flex-end">
+      <div class="frow2" style="flex:1;margin-bottom:0">
+        <label>새 반 추가</label>
+        <input type="text" id="vc-new-cls" placeholder="예: 종촌중3D">
+      </div>
+      <button class="btn pri" style="white-space:nowrap" onclick="addVocabClass()">추가</button>
+    </div>
+    <!-- 기존 반 목록 -->
+    <div style="font-size:12px;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">기존 반 목록</div>
+    <div id="vocab-class-list" style="max-height:280px;overflow-y:auto"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-vocab-class')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 단어시험 반 이동 모달 -->
+<div class="modal-bg" id="ov-vocab-move">
+  <div class="modal" style="width:320px">
+    <h3>반 이동</h3>
+    <div style="font-size:13px;color:#888;margin-bottom:1rem">
+      <span id="vm-name" style="font-weight:700;color:#1a1a1a"></span> 학생을 다른 반으로 이동할게요
+    </div>
+    <div class="frow2">
+      <label>현재 반</label>
+      <input type="text" id="vm-cur-cls" readonly style="background:#f5f5f5;color:#888">
+    </div>
+    <div class="frow2">
+      <label>이동할 반 *</label>
+      <select id="vm-new-cls">
+        <option value="">반 선택...</option>
+      </select>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-vocab-move')">취소</button>
+      <button class="btn pri" onclick="doVocabMove()">이동하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 달력 모달 -->
+<div class="modal-bg" id="ov-cal">
+  <div class="cal-box">
+    <div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:500" id="cal-label"></div>
+    <div class="cal-hdr">
+      <button class="cal-nav" onclick="calMove(-1)">&#8249;</button>
+      <span class="cal-title" id="cal-title"></span>
+      <button class="cal-nav" onclick="calMove(1)">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-foot">
+      <button class="btn sm" onclick="clearDate()">날짜 지우기</button>
+      <button class="btn sm" onclick="closeOv('ov-cal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 다음달 넘기기 확인 모달 -->
+<div class="modal-bg" id="ov-next">
+  <div class="modal">
+    <h3>다음 달로 넘기기</h3>
+    <div class="next-month-info" id="next-month-info"></div>
+    <div style="font-size:13px;color:#555;line-height:1.7;margin-bottom:1rem">
+      ✅ 현재 달 납부 기록은 <b>이전 기록</b> 탭에 저장돼요<br>
+      ✅ 학생 목록은 <b>그대로 유지</b>돼요 (퇴원생 제외)<br>
+      ✅ 납부 여부와 납부일은 <b>초기화</b>돼요<br>
+      ✅ 신규 뱃지도 초기화돼요
+    </div>
+    <div style="font-size:13px;color:#c0392b;font-weight:500">미납자 <span id="next-unpaid-count">0</span>명이 있어요. 넘기기 전에 확인해주세요!</div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-next')">취소</button>
+      <button class="btn blue" onclick="doNextMonth()">넘기기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var DAYS = ['일','월','화','수','목','금','토'];
+var selMethod = '';
+var calYear, calMonth, calIdx;
+var now = new Date();
+var curYear = now.getFullYear();
+var curMonth = now.getMonth() + 1; // 1-based
+
+var HISTORY = []; // [{year, month, label, students:[...snapshot]}]
+var selectedHistIdx = 0;
+
+function updHeader() {
+  document.getElementById('hdr-month').textContent = curYear + '년 ' + curMonth + '월';
+}
+updHeader();
+
+// 초중등부
+var TD_JUNIOR = [
+  {name:'김민하',cls:'종촌중3A',phone:'01028271312',fee:270000,method:'입금',memo:'교과/형제할인',sibling:'윤하',paid:false,date:'',isNew:false},
+  {name:'임서현',cls:'어진중3A',phone:'01023216200',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'임건휘',paid:true,date:'2026-05-01',isNew:false},
+  {name:'최윤서',cls:'종촌중3A',phone:'01052183753',fee:265000,method:'결제선생',memo:'교과/형제할인',sibling:'윤채,윤호',paid:false,date:'',isNew:false},
+  {name:'한예주',cls:'종촌중3A',phone:'01041979179',fee:275000,method:'결제선생',memo:'형제할인',sibling:'주원',paid:true,date:'2026-04-30',isNew:false},
+  {name:'서진우',cls:'어진중3A',phone:'01074073809',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-03',isNew:false},
+  {name:'이하윤',cls:'어진중3A',phone:'01099588525',fee:275000,method:'결제선생',memo:'형제할인',sibling:'이윤우',paid:true,date:'2026-05-04',isNew:false},
+  {name:'이혜원',cls:'종촌중3C',phone:'01089049357',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'민태기',cls:'종촌중3C',phone:'01072533274',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'노현승',cls:'어진중3B',phone:'01036798044',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'현서',paid:true,date:'2026-05-02',isNew:false},
+  {name:'박재윤',cls:'Sprout1',phone:'01027636760',fee:235000,method:'결제선생',memo:'형제할인',sibling:'도윤',paid:true,date:'2026-05-02',isNew:false},
+  {name:'이건우',cls:'Sprout2',phone:'01077204157',fee:155000,method:'결제선생',memo:'형제할인',sibling:'서아',paid:true,date:'2026-05-02',isNew:false},
+  {name:'조윤아',cls:'Sprout1',phone:'01033867090',fee:230000,method:'현장카드',memo:'교과/형제할인',sibling:'민준',paid:true,date:'2026-04-30',isNew:false},
+  {name:'송정우',cls:'Sprout1',phone:'01044221401',fee:235000,method:'현장카드',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'고현서',cls:'seed4',phone:'01088627051',fee:205000,method:'결제선생',memo:'형제할인',sibling:'현준',paid:true,date:'2026-04-30',isNew:false},
+  {name:'손효원',cls:'어진중1A',phone:'01040024860',fee:275000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'임서율',cls:'seed3',phone:'01088821459',fee:200000,method:'현장카드',memo:'교과/형제할인',sibling:'임서준',paid:false,date:'',isNew:false},
+  {name:'김민찬',cls:'seed4',phone:'01077429685',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김성윤',cls:'seed4',phone:'01085670061',fee:235000,method:'현장카드',memo:'형제할인',sibling:'성준',paid:false,date:'',isNew:false},
+  {name:'김선우',cls:'Sprout2',phone:'01046185357',fee:235000,method:'현장카드',memo:'형제할인',sibling:'도현',paid:false,date:'',isNew:false},
+  {name:'이재희',cls:'Sprout2',phone:'01091165177',fee:235000,method:'현장카드',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'왕지후',cls:'종촌중2D',phone:'01050152683',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'왕지아',paid:true,date:'2026-05-04',isNew:false},
+  {name:'이준우',cls:'seed11',phone:'01030251827',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'박도윤',cls:'seed12',phone:'01027636760',fee:235000,method:'결제선생',memo:'형제할인',sibling:'재윤',paid:true,date:'2026-05-02',isNew:false},
+  {name:'문예원',cls:'seed12',phone:'01091468834',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'정재준',cls:'Sprout5',phone:'01024160011',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'한주원',cls:'Sprout5',phone:'01041979179',fee:235000,method:'결제선생',memo:'형제할인',sibling:'예주',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김채아',cls:'종촌중1A',phone:'01072267861',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'고현준',cls:'종촌중1A',phone:'01088627051',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'현서',paid:true,date:'2026-04-30',isNew:false},
+  {name:'강시연',cls:'어진중2B',phone:'01071178690',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'강백현',cls:'종촌중1A',phone:'01084868401',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'송지원',cls:'어진중2A',phone:'01032963219',fee:280000,method:'입금',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이래오',cls:'종촌중2A',phone:'01072362288',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박상빈',cls:'어진중2B',phone:'01037214215',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'임서준',cls:'종촌중1F',phone:'01088821459',fee:270000,method:'현장카드',memo:'교과/형제할인',sibling:'서율',paid:false,date:'',isNew:false},
+  {name:'김승후',cls:'어진중3B',phone:'01036199870',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'오재민',cls:'종촌중3C',phone:'01094074602',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'최경재',cls:'종촌중2A',phone:'01086176038',fee:275000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'조민준',cls:'종촌중2A',phone:'01033867090',fee:270000,method:'현장카드',memo:'교과/형제할인',sibling:'윤아',paid:true,date:'2026-04-30',isNew:false},
+  {name:'신예담',cls:'종촌중1A',phone:'01064083661',fee:275000,method:'입금',memo:'형제할인',sibling:'신우연',paid:true,date:'2026-05-02',isNew:false},
+  {name:'김윤하',cls:'종촌중2A',phone:'01028271312',fee:275000,method:'입금',memo:'형제할인',sibling:'민하',paid:false,date:'',isNew:false},
+  {name:'이서아',cls:'종촌중2F',phone:'01077204157',fee:275000,method:'결제선생',memo:'형제할인',sibling:'건우',paid:true,date:'2026-05-02',isNew:false},
+  {name:'이예나',cls:'종촌중2C',phone:'01099022414',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'문준희',cls:'종촌중2A',phone:'01044522509',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'김수현',cls:'종촌중2A',phone:'01095150266',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'오연규',cls:'어진중3B',phone:'01032181154',fee:275000,method:'입금',memo:'형제할인',sibling:'정윤',paid:true,date:'2026-04-27',isNew:false},
+  {name:'김루아',cls:'종촌중2A',phone:'01066103290',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김성준',cls:'Sprout2',phone:'01085670061',fee:235000,method:'현장카드',memo:'형제할인',sibling:'성윤',paid:false,date:'',isNew:false},
+  {name:'양현우',cls:'어진중3B',phone:'01089339936',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'유준혁',cls:'Sprout4',phone:'01071925706',fee:240000,method:'입금',memo:'',sibling:'',paid:true,date:'2026-04-14',isNew:false},
+  {name:'최현준',cls:'seed11',phone:'01080196700',fee:235000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'홍주훈',cls:'Sprout5',phone:'01056290405',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'신지윤',cls:'Sprout2',phone:'01086092635',fee:240000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'전수윤',cls:'종촌중3A',phone:'01067950813',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'정한비',cls:'어진중3A',phone:'01035009531',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'한결',paid:true,date:'2026-05-01',isNew:false},
+  {name:'최윤채',cls:'종촌중2C',phone:'01052183753',fee:265000,method:'결제선생',memo:'교과/형제할인',sibling:'윤서,윤호',paid:false,date:'',isNew:false},
+  {name:'최윤호',cls:'Seed3',phone:'01052183753',fee:195000,method:'결제선생',memo:'교과/형제할인',sibling:'윤서,윤채',paid:false,date:'',isNew:false},
+  {name:'이은재',cls:'Seed12',phone:'01031021133',fee:230000,method:'결제선생',memo:'형제/교과할인',sibling:'혜리',paid:true,date:'2026-05-01',isNew:false},
+  {name:'이혜리',cls:'종촌중2F',phone:'01031021133',fee:270000,method:'결제선생',memo:'형제/교과할인',sibling:'은재',paid:true,date:'2026-05-01',isNew:false},
+  {name:'노현서',cls:'Sprout4',phone:'01036798044',fee:235000,method:'결제선생',memo:'형제할인',sibling:'현승',paid:true,date:'2026-05-02',isNew:false},
+  {name:'송시윤',cls:'seed12',phone:'01047203171',fee:240000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'서가온',cls:'Sprout5',phone:'01094797558',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이예주',cls:'종촌중3A',phone:'01090919055',fee:275000,method:'입금',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'오정윤',cls:'종촌중1A',phone:'01032181154',fee:270000,method:'입금',memo:'형제/교과할인',sibling:'연규',paid:true,date:'2026-04-27',isNew:false},
+  {name:'민경준',cls:'종촌중3C',phone:'01082574066',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'조우진',cls:'종촌중1D',phone:'01087498131',fee:275000,method:'입금',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박시언',cls:'Sprout4',phone:'01088268018',fee:240000,method:'입금',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이서윤',cls:'종촌중2F',phone:'01026103608',fee:275000,method:'현장카드',memo:'형제할인',sibling:'이준서',paid:false,date:'',isNew:false},
+  {name:'김규연',cls:'Sprout2',phone:'01089843299',fee:235000,method:'결제선생',memo:'형제할인',sibling:'김도연',paid:true,date:'2026-05-04',isNew:false},
+  {name:'남효인',cls:'종촌중2C',phone:'01090501675',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'장지서',cls:'seed5',phone:'01086229817',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'노아영',cls:'seed5',phone:'01031283409',fee:240000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'방은비',cls:'Seed3',phone:'01073940525',fee:230000,method:'결제선생',memo:'교과/형제할인',sibling:'은별',paid:true,date:'2026-04-30',isNew:false},
+  {name:'방은별',cls:'종촌중1A',phone:'01073940525',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'은비',paid:true,date:'2026-04-30',isNew:false},
+  {name:'박세원',cls:'어진중1A',phone:'01077374924',fee:275000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'배관영',cls:'seed5',phone:'01098323060',fee:235000,method:'결제선생',memo:'형제할인',sibling:'수진',paid:true,date:'2026-04-30',isNew:false},
+  {name:'왕지아',cls:'seed13',phone:'01050152683',fee:230000,method:'결제선생',memo:'교과/형제할인',sibling:'지후',paid:true,date:'2026-05-04',isNew:false},
+  {name:'이예슬',cls:'seed13',phone:'01045371203',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김재민',cls:'seed13',phone:'01027617962',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'이준서',cls:'Sprout5',phone:'01026103608',fee:235000,method:'현장카드',memo:'형제할인',sibling:'이서윤',paid:false,date:'',isNew:false},
+  {name:'양서진',cls:'종촌중2C',phone:'01062560419',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'유민호',cls:'seed11',phone:'01051128591',fee:230000,method:'결제선생',memo:'교과/형제할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'정유진',cls:'Sprout4',phone:'01087891126',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김수빈',cls:'seed13',phone:'01094102626',fee:230000,method:'결제선생',memo:'형제할인(만원)',sibling:'김수현,수아',paid:false,date:'',isNew:false},
+  {name:'진유찬',cls:'seed4',phone:'01030339249',fee:235000,method:'결제선생',memo:'형제할인',sibling:'진유림',paid:true,date:'2026-05-04',isNew:false},
+  {name:'정현준',cls:'seed13',phone:'01094463821',fee:240000,method:'현장카드',memo:'',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'김수현',cls:'seed14',phone:'01094102626',fee:200000,method:'결제선생',memo:'형제할인(만원)',sibling:'김수빈,수아',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김수아',cls:'seed14',phone:'01094102626',fee:200000,method:'결제선생',memo:'형제할인(만원)',sibling:'김수현,수빈',paid:true,date:'2026-04-30',isNew:false},
+  {name:'윤정원',cls:'seed14',phone:'01062027646',fee:205000,method:'입금',memo:'형제할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'송서진',cls:'seed12',phone:'01054262579',fee:235000,method:'입금',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'진예은',cls:'seed5',phone:'01033525105',fee:240000,method:'입금',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'주세훈',cls:'Sprout1',phone:'01062469352',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'윤선오',cls:'종촌중3C',phone:'01038352452',fee:270000,method:'입금',memo:'교과/형제할인',sibling:'윤채이',paid:true,date:'2026-05-04',isNew:false},
+  {name:'이윤우',cls:'종촌중1A',phone:'01099588525',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'박채연',cls:'Sprout2',phone:'01088778027',fee:235000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'강민서',cls:'종촌중2F',phone:'01064152297',fee:275000,method:'현장카드',memo:'형제할인',sibling:'강지율',paid:false,date:'',isNew:false},
+  {name:'남소율',cls:'종촌중2F',phone:'01084623575',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김석현',cls:'Sprout2',phone:'01029598551',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'조희원',cls:'종촌중2F',phone:'01021760930',fee:275000,method:'현장카드',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'장예진',cls:'Sprout2',phone:'01079242294',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'임건휘',cls:'Sprout2',phone:'01023216200',fee:235000,method:'결제선생',memo:'형제할인',sibling:'임서현',paid:true,date:'2026-05-01',isNew:false},
+  {name:'박희재',cls:'seed13',phone:'01052928772',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'송혜주',cls:'종촌중1B',phone:'01052718205',fee:265000,method:'결제선생',memo:'교과/형제할인',sibling:'송혜원/윤우',paid:true,date:'2026-05-01',isNew:false},
+  {name:'송혜원',cls:'종촌중1B',phone:'01052718205',fee:265000,method:'결제선생',memo:'교과/형제할인',sibling:'송혜주/윤우',paid:true,date:'2026-05-01',isNew:false},
+  {name:'이지원',cls:'종촌중1D',phone:'01031771989',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김도현',cls:'seed12',phone:'01046185357',fee:235000,method:'현장카드',memo:'형제할인',sibling:'김선우',paid:false,date:'',isNew:false},
+  {name:'임승혁',cls:'종촌중1E',phone:'01049483833',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김도연',cls:'어진중2B',phone:'01089843299',fee:275000,method:'결제선생',memo:'형제할인',sibling:'김규연',paid:true,date:'2026-05-04',isNew:false},
+  {name:'강지율',cls:'Sprout4',phone:'01064152297',fee:235000,method:'현장카드',memo:'형제할인',sibling:'강민서',paid:false,date:'',isNew:false},
+  {name:'황해솔',cls:'어진중2B',phone:'01052140711',fee:275000,method:'결제선생',memo:'형제할인',sibling:'황가온',paid:true,date:'2026-05-01',isNew:false},
+  {name:'손나율',cls:'sprout3',phone:'01030154894',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-03',isNew:false},
+  {name:'서다현',cls:'종촌중2D',phone:'01040407311',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'인서은',cls:'seed14',phone:'01091236699',fee:210000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'배수진',cls:'종촌중1A',phone:'01098323060',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'배관영',paid:true,date:'2026-04-30',isNew:false},
+  {name:'신유나',cls:'어진중2A',phone:'01091482231',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'송윤우',cls:'seed4',phone:'01052718205',fee:225000,method:'결제선생',memo:'교과/형제할인',sibling:'송혜원/혜주',paid:true,date:'2026-05-01',isNew:false},
+  {name:'유민준',cls:'종촌중2C',phone:'01051128591',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'고은서',cls:'종촌중2D',phone:'01085268668',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'김현중',cls:'sprout3',phone:'01039978210',fee:275000,method:'결제선생',memo:'형제할인',sibling:'김해중',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김해중',cls:'seed11',phone:'01039978210',fee:235000,method:'결제선생',memo:'형제할인',sibling:'김현중',paid:true,date:'2026-04-30',isNew:false},
+  {name:'남태윤',cls:'seed12',phone:'01044851317',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'윤채이',cls:'종촌중1C',phone:'01038352452',fee:270000,method:'입금',memo:'교과/형제할인',sibling:'윤선오',paid:true,date:'2026-05-04',isNew:false},
+  {name:'김유은',cls:'sprout3',phone:'01050653241',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김시완',cls:'Sprout2',phone:'01030429502',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'여민준',cls:'어진중2B',phone:'01020939317',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김하린',cls:'Sprout2',phone:'01021287920',fee:235000,method:'현장카드',memo:'교과할인',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'김강우',cls:'종촌중2C',phone:'01048406979',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'진유림',cls:'seed3',phone:'01030339249',fee:235000,method:'결제선생',memo:'형제할인',sibling:'진유찬',paid:true,date:'2026-05-04',isNew:false},
+  {name:'김준범',cls:'종촌중1B',phone:'01099117912',fee:275000,method:'현장카드',memo:'교과할인',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'정은우',cls:'종촌중1B',phone:'01077993166',fee:280000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김민성',cls:'종촌중1C',phone:'01024011730',fee:275000,method:'현장카드',memo:'형제할인',sibling:'민서',paid:true,date:'2026-04-27',isNew:false},
+  {name:'김민서',cls:'Sprout2',phone:'01024011730',fee:235000,method:'현장카드',memo:'형제할인',sibling:'민성',paid:true,date:'2026-04-27',isNew:false},
+  {name:'윤지원',cls:'어진중3B',phone:'01062027646',fee:275000,method:'입금',memo:'형제할인',sibling:'정원',paid:false,date:'',isNew:false},
+  {name:'이상원',cls:'어진중3B',phone:'01033045883',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-02',isNew:false},
+  {name:'지예준',cls:'어진중3B',phone:'01071837945',fee:280000,method:'입금',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'구나영',cls:'Seed12',phone:'01095943049',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이예지',cls:'Sprout2',phone:'01045720760',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김은기',cls:'종촌중1B',phone:'01036559679',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'윤예하',cls:'종촌중1B',phone:'01024254931',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'심이레',cls:'Seed13',phone:'01082728379',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-03',isNew:false},
+  {name:'김가온',cls:'Seed13',phone:'01044135960',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'김지원',cls:'종촌중2D',phone:'01057225895',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'정준희',cls:'종촌중2D',phone:'01057319100',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이현서',cls:'Sprout4',phone:'01055892705',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'고하은',cls:'Sprout6',phone:'01031188393',fee:240000,method:'현장카드',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'이서진',cls:'Seed11',phone:'01026494804',fee:240000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'유하진',cls:'Seed3',phone:'01097976707',fee:240000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-02',isNew:false},
+  {name:'김민재',cls:'Seed1',phone:'01098613799',fee:240000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박시윤',cls:'Seed11',phone:'01020052833',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'김승훈',cls:'종촌중1D',phone:'01033304616',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'임도희',cls:'Seed11',phone:'01064791571',fee:235000,method:'결제선생',memo:'형제할인',sibling:'도훈',paid:true,date:'2026-04-30',isNew:false},
+  {name:'임도훈',cls:'어진중1A',phone:'01064791571',fee:270000,method:'결제선생',memo:'교과/형제할인',sibling:'도희',paid:false,date:'',isNew:false},
+  {name:'정민섭',cls:'어진중3B',phone:'01054443820',fee:280000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박가온',cls:'종촌중1E',phone:'01071905690',fee:280000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'박지안',cls:'Sprout6',phone:'01034662424',fee:240000,method:'입금',memo:'',sibling:'',paid:true,date:'2026-05-02',isNew:false},
+  {name:'김도윤',cls:'Seed11',phone:'01095150266',fee:230000,method:'결제선생',memo:'교과/형제할인',sibling:'수현',paid:true,date:'2026-04-30',isNew:false},
+  {name:'조국',cls:'Seed11',phone:'01088702699',fee:240000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'유수예',cls:'Seed3',phone:'01031151980',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'윤사랑',cls:'Sprout6',phone:'01020878660',fee:235000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'천승재',cls:'종촌중2C',phone:'01091725333',fee:275000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-03',isNew:false},
+  {name:'박형식',cls:'종촌중1E',phone:'01092512394',fee:280000,method:'입금',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'권민준',cls:'seed14',phone:'01030123671',fee:210000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김수현',cls:'seed15',phone:'01045932478',fee:160000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+];
+// 고등부
+var TD_SENIOR = [
+  {name:'장서희',cls:'종촌고1A',phone:'01098789778',fee:310000,method:'결제선생',memo:'교과/형제할인',sibling:'예준',paid:true,date:'2026-04-30',isNew:false},
+  {name:'엄태준',cls:'종촌고1B',phone:'01088871500',fee:315000,method:'입금',memo:'교과할인',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'이시온',cls:'고운고1',phone:'01037821703',fee:320000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'전용성',cls:'종촌고1A',phone:'01034673963',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'윤태원',cls:'종촌고1A',phone:'01053140692',fee:310000,method:'결제선생',memo:'교과/형제할인',sibling:'현서',paid:true,date:'2026-05-01',isNew:false},
+  {name:'정한결',cls:'종촌고1B',phone:'01035009531',fee:310000,method:'결제선생',memo:'교과/형제할인',sibling:'한비',paid:true,date:'2026-05-01',isNew:false},
+  {name:'황가온',cls:'종촌고1B',phone:'01052140711',fee:315000,method:'결제선생',memo:'형제할인',sibling:'해솔',paid:true,date:'2026-05-01',isNew:false},
+  {name:'주현우',cls:'종촌고1B',phone:'01066909751',fee:315000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'진시훈',cls:'고운고1',phone:'01034783097',fee:315000,method:'결제선생',memo:'교과할인',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'양가연',cls:'종촌고1C',phone:'01092037217',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'이서준',cls:'종촌고1A',phone:'01047126862',fee:310000,method:'결제선생',memo:'형제/교과할인',sibling:'이채은',paid:false,date:'',isNew:false},
+  {name:'윤호',cls:'고운고2',phone:'01047878016',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-04',isNew:false},
+  {name:'장예준',cls:'고운고2',phone:'01098789778',fee:315000,method:'결제선생',memo:'형제할인',sibling:'서희',paid:true,date:'2026-04-30',isNew:false},
+  {name:'정다현',cls:'고운고2',phone:'01051041000',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'고은채',cls:'종촌고2A',phone:'01044475912',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'양기호',cls:'종촌고3',phone:'01089339936',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'성정은',cls:'종촌고3',phone:'01035430680',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'윤현서',cls:'종촌고3',phone:'01053140692',fee:310000,method:'결제선생',memo:'교과/형제할인',sibling:'태원',paid:true,date:'2026-05-01',isNew:false},
+  {name:'이채은',cls:'종촌고3',phone:'01047126862',fee:315000,method:'결제선생',memo:'형제할인',sibling:'이서준',paid:false,date:'',isNew:false},
+  {name:'권민준',cls:'종촌고2B',phone:'01052254084',fee:320000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'한예인',cls:'종촌고3',phone:'01081219101',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'마수민',cls:'종촌고2A',phone:'01063952344',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'신지윤B',cls:'종촌고2B',phone:'01041181734',fee:315000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'최유진',cls:'종촌고2B',phone:'01041316410',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'구자현',cls:'종촌고1B',phone:'01084193070',fee:320000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'유시현',cls:'종촌고2B',phone:'01023844362',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'오예주',cls:'종촌고3',phone:'01024324482',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'장동훈',cls:'종촌고1A',phone:'01054326109',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'신우연',cls:'종촌고1A',phone:'01064083661',fee:315000,method:'입금',memo:'형제할인',sibling:'신예담',paid:true,date:'2026-05-02',isNew:false},
+  {name:'황하은',cls:'종촌고1C',phone:'01045576245',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'이영은',cls:'종촌고3',phone:'01025530360',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'김태은',cls:'종촌고3',phone:'01047383157',fee:320000,method:'결제선생',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박서연',cls:'종촌고3',phone:'01091966872',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-04-30',isNew:false},
+  {name:'신지훈',cls:'종촌고2B',phone:'01043884936',fee:315000,method:'현장카드',memo:'교과할인',sibling:'',paid:false,date:'',isNew:false},
+  {name:'박서연',cls:'종촌고1A',phone:'01088180129',fee:320000,method:'현장카드',memo:'',sibling:'',paid:false,date:'',isNew:false},
+  {name:'강예리',cls:'종촌고1A',phone:'01030169213',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-01',isNew:false},
+  {name:'전상훈',cls:'종촌고1B',phone:'01094172802',fee:320000,method:'결제선생',memo:'',sibling:'',paid:true,date:'2026-05-02',isNew:false},
+  {name:'이은채',cls:'종촌고1B',phone:'01030335353',fee:320000,method:'',memo:'',sibling:'',paid:false,date:'',isNew:false},
+];
+var TD = TD_JUNIOR; // 현재 활성 탭 데이터
+var WD = [];
+
+var BD = [
+  {date:'1월8일',name:'장예진',book:'주니어리딩튜터1(워크북포함)',amount:13500,arrival:'1월6일',pdate:'1월8일',manager:'설경쌤',isPaid:true},
+  {date:'1월8일',name:'김윤하',book:'세듀 어법꼴 start + 천일문 독해 INTRO',amount:36000,arrival:'1월6일',pdate:'1월23일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'문준희',book:'세듀 어법꼴 start + 천일문 독해 INTRO',amount:19800,arrival:'1월6일',pdate:'1월8일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'최경재',book:'세듀 어법꼴 start + 천일문 독해 INTRO',amount:36000,arrival:'1월6일',pdate:'',manager:'원장님',isPaid:false},
+  {date:'1월13일',name:'김초우',book:'달곰한리터러시2, birkcs writing 100-1',amount:27900,arrival:'1월9일',pdate:'',manager:'상은쌤',isPaid:false},
+  {date:'1월13일',name:'임서울',book:'달곰한리터러시2, birkcs writing 100-1',amount:27900,arrival:'1월9일',pdate:'1월13일',manager:'상은쌤',isPaid:true},
+  {date:'1월13일',name:'방은비',book:'달곰한리터러시2, birkcs writing 100-1',amount:27900,arrival:'1월9일',pdate:'1월13일',manager:'상은쌤',isPaid:true},
+  {date:'1월13일',name:'진유림',book:'달곰한리터러시2, birkcs writing 100-1',amount:27900,arrival:'1월9일',pdate:'',manager:'상은쌤',isPaid:false},
+  {date:'1월13일',name:'김지언',book:'Grammar inside2, readers bank 5',amount:28350,arrival:'1월6일',pdate:'1월20일',manager:'현아쌤',isPaid:true},
+  {date:'1월8일',name:'김투아',book:'천일문 독해 INTRO Explanation',amount:18000,arrival:'1월6일',pdate:'1월8일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'박건우',book:'천일문 독해 INTRO Explanation',amount:18000,arrival:'1월6일',pdate:'',manager:'원장님',isPaid:false},
+  {date:'1월8일',name:'이래오',book:'천일문 독해 INTRO Explanation',amount:18000,arrival:'1월6일',pdate:'1월8일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'이채현',book:'능률 grammar inside2, 리더스뱅크 6',amount:28350,arrival:'1월7일',pdate:'1월8일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'남소율',book:'능률 grammar inside2, 리더스뱅크 6',amount:28350,arrival:'1월7일',pdate:'1월12일',manager:'원장님',isPaid:true},
+  {date:'1월8일',name:'강민서',book:'능률 grammar inside2, 리더스뱅크 6',amount:28350,arrival:'1월7일',pdate:'1월8일',manager:'원장님',isPaid:false}
+];
+
+function fmt(iso) {
+  if (!iso) return '-';
+  var p = iso.split('-');
+  return parseInt(p[1]) + '월 ' + parseInt(p[2]) + '일';
+}
+function toISO() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function sw(name, el) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+  el.classList.add('on');
+  var panelEl = document.getElementById('panel-' + name);
+  if (panelEl) panelEl.classList.add('on');
+  closeAllMpop();
+  if (name === 'junior') { updCls('junior'); rt('junior'); updStats('junior'); }
+  if (name === 'senior') { updCls('senior'); rt('senior'); updStats('senior'); }
+  if (name === 'vocab') renderVocab();
+  if (name === 'schedule') renderSchedule();
+  if (name === 'absent') renderAbsent();
+  if (name === 'history') renderHist();
+  if (name === 'members') renderMembers();
+}
+function openOv(id) { var el=document.getElementById(id); if(el) el.classList.add('on'); }
+function closeOv(id) { var el=document.getElementById(id); if(el) el.classList.remove('on'); }
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.mpop-wrap')) closeAllMpop();
+});
+function closeAllMpop() {
+  document.querySelectorAll('.mpop').forEach(function(m){ m.classList.remove('on'); });
+}
+function toggleMpop(e, id) {
+  e.stopPropagation();
+  var el = document.getElementById(id);
+  var wasOn = el.classList.contains('on');
+  closeAllMpop();
+  if (!wasOn) el.classList.add('on');
+}
+function setMethod(idx, m) {
+  TD[idx].method = m;
+  closeAllMpop();
+  rt('junior'); rt('senior');
+}
+
+document.getElementById('msel-reg').addEventListener('click', function(e) {
+  var btn = e.target.closest('.mopt');
+  if (!btn) return;
+  selMethod = btn.getAttribute('data-m');
+  document.querySelectorAll('#msel-reg .mopt').forEach(function(b){ b.className = 'mopt'; });
+  btn.className = 'mopt S' + selMethod;
+});
+['ov-reg','ov-cal','ov-next'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e) {
+    if (e.target === this) closeOv(id);
+  });
+});
+
+// ===== 회원명부 =====
+function renderMembers() {
+  var q = (document.getElementById('m-search') || {value:''}).value.toLowerCase();
+  var c = (document.getElementById('m-cls') || {value:''}).value;
+
+  // 반 필터 드롭다운 업데이트
+  var mclsSel = document.getElementById('m-cls');
+  if (mclsSel) {
+    var cur = mclsSel.value;
+    var clsList = [];
+    TD.forEach(function(r){ if (clsList.indexOf(r.cls)<0) clsList.push(r.cls); });
+    clsList.sort();
+    mclsSel.innerHTML = '<option value="">전체 반</option>' +
+      clsList.map(function(cls){ return '<option'+(cls===cur?' selected':'')+'>'+cls+'</option>'; }).join('');
+  }
+
+  var rows = TD.map(function(r,i){ return {r:r, i:i}; }).filter(function(item){
+    var mn = item.r.name.toLowerCase().indexOf(q)>=0 || item.r.cls.toLowerCase().indexOf(q)>=0;
+    var mc = !c || item.r.cls===c;
+    return mn && mc;
+  });
+
+  // 반별로 그룹화
+  var groups = {};
+  var groupOrder = [];
+  rows.forEach(function(item){
+    if (!groups[item.r.cls]) { groups[item.r.cls]=[]; groupOrder.push(item.r.cls); }
+    groups[item.r.cls].push(item);
+  });
+
+  var h = '';
+  var num = 0;
+  groupOrder.forEach(function(cls){
+    // 반 헤더 행
+    h += '<tr style="background:#f5f5f5">' +
+      '<td colspan="5" style="padding:6px 10px;font-size:12px;font-weight:700;color:#555">'+cls+
+      ' <span style="font-weight:400;color:#aaa">('+groups[cls].length+'명)</span></td></tr>';
+    groups[cls].forEach(function(item){
+      var r=item.r; var i=item.i; num++;
+      h += '<tr>' +
+        '<td style="color:#aaa;font-size:11px;text-align:center">'+num+'</td>' +
+        '<td style="font-size:12px">'+r.cls+(r.isNew?'<span class="new-tag">신규</span>':'')+'</td>' +
+        '<td style="font-weight:600;cursor:pointer;color:#1a6fb5;text-decoration:underline" onclick="openEdit('+i+')">'+r.name+'</td>' +
+        '<td style="font-size:12px;color:#888">'+(r.phone||'-')+'</td>' +
+        '<td><button class="btn sm" style="padding:3px 6px" onclick="openEdit('+i+')">✏️</button></td>' +
+      '</tr>';
+    });
+  });
+
+  if (!rows.length) h = '<tr><td colspan="5" class="empty">검색 결과 없음</td></tr>';
+
+  var tbody = document.getElementById('tb-members');
+  if (tbody) tbody.innerHTML = h;
+  var countEl = document.getElementById('members-count');
+  if (countEl) countEl.textContent = '총 ' + num + '명';
+}
+
+function updCls() {
+  var sel = document.getElementById('q-cls');
+  var cur = sel.value;
+  var cls = [];
+  TD.forEach(function(r){ if (cls.indexOf(r.cls) < 0) cls.push(r.cls); });
+  cls.sort();
+  sel.innerHTML = '<option value="">전체 반</option>' + cls.map(function(c){ return '<option>' + c + '</option>'; }).join('');
+  sel.value = cur;
+}
+
+function updStats(level) {
+  var data, sfx;
+  if (level === 'senior') { data = TD_SENIOR; sfx = '-s'; }
+  else if (level === 'junior') { data = TD_JUNIOR; sfx = '-j'; }
+  else { data = TD; sfx = ''; }
+
+  var total = data.length;
+  var paid = data.filter(function(r){ return r.paid; }).length;
+  var amt = data.filter(function(r){ return r.paid; }).reduce(function(s,r){ return s+(r.fee||0); }, 0);
+  var rate = total ? Math.round(paid/total*100) : 0;
+
+  function g(id){ return document.getElementById(id); }
+
+  if (level === 'junior') {
+    if(g('st-j')) g('st-j').textContent = total+'명';
+    if(g('sp-j')) g('sp-j').textContent = paid+'명';
+    if(g('su-j')) g('su-j').textContent = (total-paid)+'명';
+    if(g('sa-j')) g('sa-j').textContent = amt.toLocaleString();
+    if(g('pf-j')) g('pf-j').style.width = rate+'%';
+  } else if (level === 'senior') {
+    if(g('st-s')) g('st-s').textContent = total+'명';
+    if(g('sp-s')) g('sp-s').textContent = paid+'명';
+    if(g('su-s')) g('su-s').textContent = (total-paid)+'명';
+    if(g('sa-s')) g('sa-s').textContent = amt.toLocaleString();
+    if(g('pf-s')) g('pf-s').style.width = rate+'%';
+  }
+
+  // 전체 통계 (현황요약)
+  var allTotal = TD.length;
+  var allPaid = TD.filter(function(r){ return r.paid; }).length;
+  var allRate = allTotal ? Math.round(allPaid/allTotal*100) : 0;
+  if(g('sum-rate')) g('sum-rate').textContent = allRate+'%';
+  if(g('sum-bar')) g('sum-bar').style.width = allRate+'%';
+  if(g('sum-new')) g('sum-new').textContent = TD.filter(function(r){ return r.isNew; }).length+'명';
+  if(g('wc')) g('wc').textContent = WD.length;
+  if(g('hc')) g('hc').textContent = HISTORY.length;
+  var ul = TD.filter(function(r){ return !r.paid; });
+  if(g('tb-u')) g('tb-u').innerHTML = ul.length
+    ? ul.map(function(r){ return '<tr><td>'+r.name+'</td><td>'+r.cls+'</td><td>'+(r.fee||0).toLocaleString()+'</td><td style="color:#888;font-size:12px">'+(r.memo||'')+'</td></tr>'; }).join('')
+    : '<tr><td colspan="4" class="empty">미납자 없음! 🎉</td></tr>';
+}
+
+function rt(level) {
+  var isSenior = (level === 'senior');
+  var sfx = isSenior ? '-s' : '';
+  var tbId = isSenior ? 'tb-s' : 'tb-j';
+  var data = isSenior ? TD_SENIOR : TD_JUNIOR;
+  var qEl = document.getElementById('q-name' + sfx) || document.getElementById('q-name');
+  var sEl = document.getElementById('q-status' + sfx) || document.getElementById('q-status');
+  var cEl = document.getElementById('q-cls' + sfx) || document.getElementById('q-cls');
+  var q = qEl ? qEl.value : '';
+  var s = sEl ? sEl.value : '';
+  var c = cEl ? cEl.value : '';
+  var rows = [];
+  data.forEach(function(r, i){
+    var mn = r.name.indexOf(q) >= 0 || r.cls.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+    var ms = !s || (s === '납부' ? r.paid : !r.paid);
+    var mc = !c || r.cls === c;
+    if (mn && ms && mc) rows.push({r:r, i:i});
+  });
+  document.getElementById(tbId).innerHTML = rows.length ? rows.map(function(item){
+    var r = item.r; var i = item.i;
+    var mpopId = 'mp-' + i;
+    return '<tr>' +
+      '<td><button class="ck '+(r.paid?'on':'')+'" onclick="togPaid('+i+')">'+(r.paid?'✓':'')+'</button></td>' +
+      '<td style="font-size:12px">'+r.cls+(r.isNew?'<span class="new-tag">신규</span>':'')+'</td>' +
+      '<td style="font-weight:600">'+r.name+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.phone||'-')+'</td>' +
+      '<td style="font-size:13px">'+r.fee.toLocaleString()+'</td>' +
+      '<td style="overflow:visible"><div class="mpop-wrap">' +
+        '<span class="mb M'+r.method+'" onclick="toggleMpop(event,\''+mpopId+'\')">'+r.method+' &#9662;</span>' +
+        '<div class="mpop" id="'+mpopId+'">' +
+          '<button class="o입금" onclick="setMethod('+i+',\'입금\')">입금</button>' +
+          '<button class="o결제선생" onclick="setMethod('+i+',\'결제선생\')">결제선생</button>' +
+          '<button class="o현장카드" onclick="setMethod('+i+',\'현장카드\')">현장카드</button>' +
+        '</div></div></td>' +
+      '<td><button class="dbtn '+(r.date?'set':'')+'" onclick="openCal('+i+')">'+(r.date?fmt(r.date):'날짜 선택')+'</button></td>' +
+      '<td><span class="badge '+(r.paid?'paid':'unpaid')+'">'+(r.paid?'납부':'미납')+'</span></td>' +
+      '<td style="font-size:12px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">'+(r.memo||'')+'</td>' +
+      '<td><button class="btn sm" style="padding:3px 6px" onclick="openEdit('+i+')">✏️</button></td>' +
+      '<td><button class="btn red sm" onclick="withdraw('+i+')">퇴원</button></td>' +
+    '</tr>';
+  }).join('') : '<tr><td colspan="11" class="empty">검색 결과 없음</td></tr>';
+}
+
+var editIdx = -1;
+var editMethod = '';
+
+function openEdit(i) {
+  editIdx = i;
+  var r = TD[i];
+  document.getElementById('e-name').value = r.name;
+  document.getElementById('e-cls').value = r.cls;
+  document.getElementById('e-phone').value = r.phone || '';
+  document.getElementById('e-fee').value = r.fee;
+  document.getElementById('e-sib').value = r.sibling || '';
+  document.getElementById('e-memo').value = r.memo || '';
+  editMethod = r.method || '';
+  // 결제방식 버튼 선택 상태
+  document.querySelectorAll('#msel-edit .mopt').forEach(function(b) {
+    b.className = 'mopt' + (b.getAttribute('data-m') === editMethod ? ' S'+editMethod : '');
+  });
+  openOv('ov-edit');
+}
+
+function saveEdit() {
+  var name = document.getElementById('e-name').value.trim();
+  var cls = document.getElementById('e-cls').value.trim();
+  var fee = parseInt(document.getElementById('e-fee').value) || 0;
+  if (!name || !cls) { alert('이름과 반은 필수입니다'); return; }
+
+  var oldName = TD[editIdx].name;
+  var oldCls = TD[editIdx].cls;
+  var clsChanged = oldCls !== cls;
+  var nameChanged = oldName !== name;
+
+  TD[editIdx].name = name;
+  TD[editIdx].cls = cls;
+  TD[editIdx].phone = document.getElementById('e-phone').value.trim();
+  TD[editIdx].fee = fee;
+  TD[editIdx].sibling = document.getElementById('e-sib').value.trim();
+  TD[editIdx].memo = document.getElementById('e-memo').value.trim();
+  if (editMethod) TD[editIdx].method = editMethod;
+
+  // 반 이름 또는 학생 이름이 바뀐 경우 단어시험 데이터도 동기화
+  if (clsChanged || nameChanged) {
+    // 모든 월 데이터 순회
+    Object.keys(VOCAB_MONTHLY).forEach(function(monthKey) {
+      var monthData = VOCAB_MONTHLY[monthKey];
+      // 이름 변경: 기존 반에서 이름 키 이동
+      if (nameChanged && monthData[oldCls] && monthData[oldCls][oldName] !== undefined) {
+        monthData[oldCls][name] = monthData[oldCls][oldName];
+        delete monthData[oldCls][oldName];
+      }
+      // 반 변경: 이전 반 → 새 반으로 데이터 이동
+      if (clsChanged && monthData[oldCls]) {
+        var studentKey = nameChanged ? name : oldName;
+        if (monthData[oldCls][studentKey] !== undefined) {
+          if (!monthData[cls]) monthData[cls] = {};
+          monthData[cls][studentKey] = monthData[oldCls][studentKey];
+          delete monthData[oldCls][studentKey];
+          // 이전 반이 비었으면 키 삭제
+          if (Object.keys(monthData[oldCls]).length === 0) {
+            delete monthData[oldCls];
+          }
+        }
+      }
+    });
+    // 총점 설정도 반 이름 변경 시 이동
+    if (clsChanged && VOCAB_TOTALS[oldCls] !== undefined) {
+      // 새 반에 총점이 없는 경우에만 복사 (기존 설정 덮어쓰지 않음)
+      if (!VOCAB_TOTALS[cls]) VOCAB_TOTALS[cls] = VOCAB_TOTALS[oldCls];
+    }
+  }
+
+  // TD_JUNIOR / TD_SENIOR 동기화
+  TD_JUNIOR = TD.filter(function(r){ return !r.level || r.level === 'junior'; });
+  TD_SENIOR = TD.filter(function(r){ return r.level === 'senior'; });
+
+  updCls('junior'); updCls('senior');
+  rt('junior'); rt('senior');
+  updStats('junior'); updStats('senior');
+  renderVocab();
+  renderMembers();
+  closeOv('ov-edit');
+  if (clsChanged) {
+    alert(oldName + ' 학생의 반이 ' + oldCls + ' -> ' + cls + ' 로 변경됐어요! 단어시험 명단도 자동으로 이동됐어요!');
+  }
+}
+
+document.getElementById('msel-edit').addEventListener('click', function(e) {
+  var btn = e.target.closest('.mopt');
+  if (!btn) return;
+  editMethod = btn.getAttribute('data-m');
+  document.querySelectorAll('#msel-edit .mopt').forEach(function(b){ b.className = 'mopt'; });
+  btn.className = 'mopt S' + editMethod;
+});
+
+function togPaid(i) {
+  TD[i].paid = !TD[i].paid;
+  if (TD[i].paid && !TD[i].date) TD[i].date = toISO();
+  rt('junior'); rt('senior'); updStats('junior'); updStats('senior');
+}
+function withdraw(i) {
+  var s = TD.splice(i,1)[0]; s.withdrawDate = fmt(toISO());
+  WD.push(s); updCls('junior'); updCls('senior'); rt('junior'); rt('senior'); rwn(); updStats('junior'); updStats('senior');
+}
+function restore(i) {
+  var s = WD.splice(i,1)[0]; delete s.withdrawDate;
+  TD.push(s); updCls('junior'); updCls('senior'); rt('junior'); rt('senior'); rwn(); updStats('junior'); updStats('senior');
+}
+function rwn() {
+  var empty = document.getElementById('w-empty');
+  if (!WD.length) { document.getElementById('tb-w').innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  document.getElementById('tb-w').innerHTML = WD.map(function(r,i){
+    return '<tr>' +
+      '<td style="font-size:12px">'+r.cls+'</td>' +
+      '<td style="font-weight:600">'+r.name+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.phone||'-')+'</td>' +
+      '<td>'+r.fee.toLocaleString()+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.withdrawDate||'')+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.memo||'')+'</td>' +
+      '<td><button class="btn grn sm" onclick="restore('+i+')">복귀</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+// 달력
+function openCal(i) {
+  calIdx = i; var r = TD[i];
+  document.getElementById('cal-label').textContent = r.name + ' · ' + r.cls + ' — 납부일 선택';
+  var base = r.date ? new Date(r.date) : new Date();
+  calYear = base.getFullYear(); calMonth = base.getMonth();
+  drawCal(); openOv('ov-cal');
+}
+function calMove(d) {
+  calMonth += d;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  drawCal();
+}
+function drawCal() {
+  document.getElementById('cal-title').textContent = calYear + '년 ' + (calMonth+1) + '월';
+  var first = new Date(calYear, calMonth, 1).getDay();
+  var last = new Date(calYear, calMonth+1, 0).getDate();
+  var todayISO = toISO(); var selISO = TD[calIdx] ? TD[calIdx].date : '';
+  var h = DAYS.map(function(d){ return '<div class="cn">'+d+'</div>'; }).join('');
+  for (var i=0; i<first; i++) h += '<div class="cd emp"></div>';
+  for (var d=1; d<=last; d++) {
+    var iso = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cls = 'cd';
+    if (iso === todayISO) cls += ' today';
+    if (iso === selISO) cls += ' sel';
+    h += '<div class="'+cls+'" onclick="pickDate(\''+iso+'\')">'+d+'</div>';
+  }
+  document.getElementById('cal-grid').innerHTML = h;
+}
+function pickDate(iso) { TD[calIdx].date = iso; closeOv('ov-cal'); rt('junior'); rt('senior'); updStats('junior'); updStats('senior'); }
+function clearDate() { TD[calIdx].date = ''; closeOv('ov-cal'); rt('junior'); rt('senior'); updStats('junior'); updStats('senior'); }
+
+// 신규 등록
+function openReg() {
+  selMethod = '';
+  document.querySelectorAll('#msel-reg .mopt').forEach(function(b){ b.className = 'mopt'; });
+  ['f-name','f-cls','f-phone','f-fee','f-sib','f-memo'].forEach(function(id){ document.getElementById(id).value = ''; });
+  openOv('ov-reg');
+}
+function addStudent() {
+  var name = document.getElementById('f-name').value.trim();
+  var cls = document.getElementById('f-cls').value.trim();
+  if (!name || !cls) { alert('이름과 반은 필수입니다'); return; }
+  var fee = parseInt(document.getElementById('f-fee').value) || 0;
+  TD.unshift({ name:name, cls:cls, fee:fee,
+    method: selMethod || '',
+    phone: document.getElementById('f-phone').value.trim(),
+    sibling: document.getElementById('f-sib').value.trim(),
+    memo: document.getElementById('f-memo').value.trim(),
+    date:'', paid:false, isNew:true });
+  TD_JUNIOR = TD.filter(function(r){ return !r.level || r.level === 'junior'; });
+  TD_SENIOR = TD.filter(function(r){ return r.level === 'senior'; });
+  updCls('junior'); updCls('senior');
+  rt('junior'); rt('senior');
+  updStats('junior'); updStats('senior');
+  renderMembers(); renderVocab(); closeOv('ov-reg');
+}
+
+// 다음 달 넘기기
+function openNextMonth() {
+  var nextM = curMonth === 12 ? 1 : curMonth + 1;
+  var nextY = curMonth === 12 ? curYear + 1 : curYear;
+  var unpaid = TD.filter(function(r){ return !r.paid; }).length;
+  document.getElementById('next-month-info').textContent =
+    curYear + '년 ' + curMonth + '월 → ' + nextY + '년 ' + nextM + '월로 넘깁니다';
+  document.getElementById('next-unpaid-count').textContent = unpaid;
+  document.querySelector('#ov-next .btn.blue').style.display = 'inline-flex';
+  openOv('ov-next');
+}
+function doNextMonth() {
+  // 현재 달 스냅샷 저장
+  var snapshot = TD.map(function(r){ return Object.assign({}, r); });
+  HISTORY.push({ year: curYear, month: curMonth, label: curYear+'년 '+curMonth+'월', students: snapshot });
+
+  // 다음 달로 이동
+  if (curMonth === 12) { curMonth = 1; curYear++; }
+  else { curMonth++; }
+
+  // 납부 초기화 (학생 목록 유지)
+  TD.forEach(function(r){ r.paid = false; r.date = ''; r.isNew = false; });
+
+  updHeader(); updCls('junior'); updCls('senior'); rt('junior'); rt('senior'); updStats('junior'); updStats('senior');
+  closeOv('ov-next');
+
+  // 이전 기록 탭으로 이동
+  alert(HISTORY[HISTORY.length-1].label + ' 기록이 저장됐어요!\n이전 기록 탭에서 확인할 수 있어요.');
+}
+
+// 이전 기록 탭
+function renderHist() {
+  var empty = document.getElementById('hist-empty');
+  var content = document.getElementById('hist-content');
+  if (!HISTORY.length) { empty.style.display = 'block'; content.style.display = 'none'; return; }
+  empty.style.display = 'none'; content.style.display = 'block';
+
+  // 칩 렌더
+  document.getElementById('hist-chips').innerHTML = HISTORY.map(function(h, i){
+    return '<button class="month-chip '+(i===selectedHistIdx?'on':'')+'" onclick="selHist('+i+')">'+h.label+'</button>';
+  }).join('');
+
+  // 선택된 달 렌더
+  var h = HISTORY[selectedHistIdx];
+  var paid = h.students.filter(function(r){ return r.paid; });
+  var unpaid = h.students.filter(function(r){ return !r.paid; });
+  var amt = paid.reduce(function(s,r){ return s+r.fee; }, 0);
+  document.getElementById('hist-stat').innerHTML =
+    '<span>전체 <strong>'+h.students.length+'명</strong></span>' +
+    '<span>납부 <strong style="color:#0a7a5a">'+paid.length+'명</strong></span>' +
+    '<span>미납 <strong style="color:#c0392b">'+unpaid.length+'명</strong></span>' +
+    '<span>수납 총액 <strong>'+amt.toLocaleString()+'원</strong></span>';
+
+  document.getElementById('tb-hist').innerHTML = h.students.map(function(r){
+    return '<tr>' +
+      '<td style="font-size:12px">'+r.cls+'</td>' +
+      '<td style="font-weight:600">'+r.name+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.phone||'-')+'</td>' +
+      '<td>'+r.fee.toLocaleString()+'</td>' +
+      '<td><span class="mb M'+r.method+'">'+r.method+'</span></td>' +
+      '<td style="font-size:12px;color:#888">'+(r.date?fmt(r.date):'-')+'</td>' +
+      '<td><span class="badge '+(r.paid?'paid':'unpaid')+'">'+(r.paid?'납부':'미납')+'</span></td>' +
+      '<td style="font-size:12px;color:#888">'+(r.memo||'')+'</td>' +
+    '</tr>';
+  }).join('');
+}
+function selHist(i) { selectedHistIdx = i; renderHist(); }
+
+// 교재비
+
+function setBookFilter(val) {
+  var sel = document.getElementById('q-book-s');
+  if (sel) { sel.value = val; fb(); }
+}
+
+function fb() {
+  var q = (document.getElementById('q-book')||{value:''}).value.toLowerCase();
+  var s = (document.getElementById('q-book-s')||{value:''}).value;
+  var t = (document.getElementById('q-book-t')||{value:''}).value;
+  var rows = BD.filter(function(r){
+    var m = r.name.indexOf(q) >= 0 || (r.book||'').toLowerCase().indexOf(q) >= 0;
+    var ss = !s || (s === '입금' ? r.isPaid : !r.isPaid);
+    var st = !t || r.manager === t;
+    return m && ss && st;
+  });
+
+  // 통계 업데이트
+  var g = function(id){ return document.getElementById(id); };
+  var totalAmt = BD.reduce(function(s,r){return s+(r.amount||0);},0);
+  var paidCnt = BD.filter(function(r){return r.isPaid;}).length;
+  if(g('book-total')) g('book-total').textContent = BD.length+'건';
+  if(g('book-paid')) g('book-paid').textContent = paidCnt+'건';
+  if(g('book-unpaid')) g('book-unpaid').textContent = (BD.length-paidCnt)+'건';
+  if(g('book-amt')) g('book-amt').textContent = totalAmt.toLocaleString();
+
+  var tbb = document.getElementById('tb-b'); if(!tbb) return;
+  tbb.innerHTML = rows.length ? rows.map(function(r){
+    var i = BD.indexOf(r);
+    var student = TD.find(function(s){ return s.name === r.name; });
+    var phone = student ? student.phone : '';
+    return '<tr>' +
+      '<td><button class="ck '+(r.isPaid?'on':'')+'" onclick="togBook('+i+')">'+(r.isPaid?'✓':'')+'</button></td>' +
+      '<td style="font-weight:600">'+r.name+'</td>' +
+      '<td style="font-size:12px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px" title="'+r.book+'">'+r.book+'</td>' +
+      '<td style="font-size:13px">'+(r.amount||0).toLocaleString()+'</td>' +
+      '<td style="font-size:12px;color:#888">'+(r.arrival||'-')+'</td>' +
+      '<td><span class="badge '+(r.isPaid?'paid':'unpaid')+'">'+(r.isPaid?(r.pdate||'입금'):'미입금')+'</span></td>' +
+      '<td style="font-size:12px;color:#888">'+(r.manager||'-')+'</td>' +
+      '<td><button class="btn sm" onclick="copyBookSmsDirect('+i+')" title="문자 복사" style="padding:3px 10px;font-size:13px">📋</button></td>' +
+    '</tr>';
+  }).join('') : '<tr><td colspan="8" class="empty">검색 결과 없음</td></tr>';
+}
+
+function togBook(i) {
+  BD[i].isPaid = !BD[i].isPaid;
+  if (BD[i].isPaid && !BD[i].pdate) BD[i].pdate = toISO();
+  fb();
+}
+
+// 선택된 학생 목록 (교재 추가용)
+var bookSelectedStudents = [];
+
+function openBookAdd() {
+  bookSelectedStudents = [];
+  document.getElementById('b-student-input').value = '';
+  document.getElementById('b-student').value = '';
+  document.getElementById('b-student-list').style.display = 'none';
+  document.getElementById('b-date').value = toISO();
+  document.getElementById('b-arrival').value = '';
+  document.getElementById('b-book').value = '';
+  document.getElementById('b-amount').value = '';
+  document.getElementById('b-memo').value = '';
+  document.getElementById('b-manager').value = '';
+  document.getElementById('b-pay-type').value = '';
+  document.getElementById('b-sms-preview').textContent = '';
+  renderBookStudentChips();
+
+  // 반 목록 업데이트
+  var clsList = [...new Set(TD.map(function(r){ return r.cls; }))].sort();
+  var clsSel = document.getElementById('b-cls-select');
+  clsSel.innerHTML = '<option value="">반 선택...</option>' +
+    clsList.map(function(c){ return '<option>'+c+'</option>'; }).join('');
+
+  openOv('ov-book');
+}
+
+function addBookByClass() {
+  var cls = document.getElementById('b-cls-select').value;
+  if (!cls) { alert('반을 선택해주세요'); return; }
+  var students = TD.filter(function(r){ return r.cls === cls; });
+  students.forEach(function(r){
+    if (!bookSelectedStudents.find(function(s){ return s.name === r.name; })) {
+      bookSelectedStudents.push({name: r.name, phone: r.phone||''});
+    }
+  });
+  document.getElementById('b-cls-select').value = '';
+  renderBookStudentChips();
+  updBookSmsPreview();
+}
+
+function renderBookStudentChips() {
+  var wrap = document.getElementById('b-selected-students');
+  var chips = document.getElementById('b-student-chips');
+  if (!bookSelectedStudents.length) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  chips.innerHTML = bookSelectedStudents.map(function(s, i){
+    return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#e8f0fb;color:#1a5fa0;border-radius:20px;font-size:12px;font-weight:600">'+
+      s.name+
+      '<button onclick="removeBookStudent('+i+')" style="background:none;border:none;cursor:pointer;color:#1a5fa0;font-size:11px;padding:0;margin-left:2px">✕</button>'+
+    '</span>';
+  }).join('');
+}
+
+function removeBookStudent(i) {
+  bookSelectedStudents.splice(i, 1);
+  renderBookStudentChips();
+  updBookSmsPreview();
+}
+
+function bookStudentSearch(q) {
+  var list = document.getElementById('b-student-list');
+  if (!q.trim()) { list.style.display = 'none'; return; }
+  var matches = TD.filter(function(r){
+    return r.name.indexOf(q) >= 0 || (r.cls||'').indexOf(q) >= 0;
+  }).slice(0, 10);
+  if (!matches.length) { list.style.display = 'none'; return; }
+  list.style.display = 'block';
+  list.innerHTML = matches.map(function(r){
+    return '<div class="bsl-item" data-name="'+r.name+'" data-phone="'+(r.phone||'')+'" style="padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0">'+
+      '<span style="font-weight:600">'+r.name+'</span> <span style="color:#aaa;font-size:12px">'+r.cls+'</span></div>';
+  }).join('');
+  list.querySelectorAll('.bsl-item').forEach(function(el){
+    el.addEventListener('mousedown', function(){
+      selectBookStudent(this.getAttribute('data-name'), this.getAttribute('data-phone'));
+    });
+    el.addEventListener('mouseover', function(){ this.style.background='#f5f5f5'; });
+    el.addEventListener('mouseout', function(){ this.style.background=''; });
+  });
+}
+
+function selectBookStudent(name, phone) {
+  if (!bookSelectedStudents.find(function(s){ return s.name === name; })) {
+    bookSelectedStudents.push({name: name, phone: phone||''});
+  }
+  document.getElementById('b-student-input').value = '';
+  document.getElementById('b-student').value = '';
+  document.getElementById('b-student-list').style.display = 'none';
+  renderBookStudentChips();
+  updBookSmsPreview();
+}
+
+function updBookSmsPreview() {
+  var inputName = bookSelectedStudents.length ? bookSelectedStudents[0].name : (document.getElementById('b-student-input').value.trim() || 'ㅇㅇㅇ');
+  var name = bookSelectedStudents.length > 1 ? bookSelectedStudents.map(function(s){return s.name;}).join(', ') : inputName;
+  var book = document.getElementById('b-book').value || '교재명';
+  var amount = document.getElementById('b-amount').value ? parseInt(document.getElementById('b-amount').value).toLocaleString()+'원' : 'ㅇㅇㅇ원';
+  var payType = document.getElementById('b-pay-type').value || '계좌이체';
+  var msg = name+' 학생 새 교재 주문 예정입니다.\n\n'+
+    '📚 교재: '+book+'\n'+
+    '💰 결제금: '+amount+'\n'+
+    '💳 결제방식: '+payType+'\n'+
+    '🏦 결제계좌: 카카오뱅크 (추후 추가)\n\n'+
+    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.\n감사합니다 🌸 봄날 English';
+  document.getElementById('b-sms-preview').textContent = msg;
+}
+
+// 입력값 바뀔 때 미리보기 업데이트
+['b-book','b-amount','b-pay-type'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', updBookSmsPreview);
+  if (el) el.addEventListener('input', updBookSmsPreview);
+});
+var bsi = document.getElementById('b-student-input');
+if(bsi) bsi.addEventListener('input', updBookSmsPreview);
+
+function copyBookSms() {
+  var msg = document.getElementById('b-sms-preview').textContent;
+  if (!msg) { alert('먼저 학생과 교재명을 입력해주세요'); return; }
+  document.getElementById('sms-content').value = msg;
+  closeOv('ov-book');
+  openOv('ov-sms');
+}
+
+function copyBookSmsDirect(i) {
+  var r = BD[i];
+  var msg = r.name+' 학생 새 교재 주문 예정입니다.\n\n'+
+    '교재: '+r.book+'\n'+
+    '결제금: '+(r.amount||0).toLocaleString()+'원\n'+
+    '결제방식: '+(r.payType||'계좌이체')+'\n'+
+    '결제계좌: 카카오뱅크 (추후 추가)\n\n'+
+    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.\n감사합니다 :) 봄날 English';
+  document.getElementById('sms-content').value = msg;
+  openOv('ov-sms');
+}
+
+function addBook() {
+  var book = document.getElementById('b-book').value.trim();
+  var inputName = document.getElementById('b-student-input').value.trim();
+  // 선택된 학생이 없으면 직접 입력한 이름 사용
+  if (!bookSelectedStudents.length && inputName) {
+    bookSelectedStudents.push({name: inputName, phone: ''});
+  }
+  if (!bookSelectedStudents.length || !book) { alert('학생과 교재명은 필수입니다'); return; }
+  var amount = parseInt(document.getElementById('b-amount').value) || 0;
+  var date = document.getElementById('b-date').value;
+  var arrival = document.getElementById('b-arrival').value;
+  var manager = document.getElementById('b-manager').value;
+  var payType = document.getElementById('b-pay-type').value;
+  var memo = document.getElementById('b-memo').value.trim();
+  // 학생 수만큼 각각 추가
+  bookSelectedStudents.slice().reverse().forEach(function(s){
+    BD.unshift({
+      name: s.name, phone: s.phone,
+      book: book, amount: amount,
+      date: date, arrival: arrival, pdate: '',
+      manager: manager, payType: payType, memo: memo, isPaid: false
+    });
+  });
+  fb();
+  closeOv('ov-book');
+  alert(bookSelectedStudents.length+'명에게 교재 '+book+' 추가됐어요!');
+}
+
+// 인쇄
+function doPrint() {
+  if (!WD.length) { alert('퇴원생이 없어요'); return; }
+  var d = new Date();
+  document.getElementById('print-date').textContent = d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 출력';
+  document.getElementById('print-count').textContent = WD.length;
+  document.getElementById('print-tbody').innerHTML = WD.map(function(r,i){
+    return '<tr>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+(i+1)+'</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+r.cls+'</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px;font-weight:600">'+r.name+'</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+(r.phone||'-')+'</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+r.fee.toLocaleString()+'원</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+(r.withdrawDate||'-')+'</td>' +
+      '<td style="border:1px solid #ccc;padding:6px 10px">'+(r.memo||'')+'</td>' +
+    '</tr>';
+  }).join('');
+  document.getElementById('print-area').style.display = 'block';
+  window.print();
+  document.getElementById('print-area').style.display = 'none';
+}
+function downloadCSV() {
+  if (!WD.length) { alert('퇴원생이 없어요'); return; }
+  var header = ['번호','반','이름','연락처','수업료','퇴원일','메모'];
+  var rows = WD.map(function(r,i){ return [i+1, r.cls, r.name, r.phone||'', r.fee, r.withdrawDate||'', r.memo||'']; });
+  var csv = '\uFEFF' + [header].concat(rows).map(function(row){
+    return row.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var d = new Date();
+  a.href = url; a.download = '봄날_퇴원생명부_'+d.getFullYear()+'년'+(d.getMonth()+1)+'월'+d.getDate()+'일.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+
+// ===== 결석예정자 =====
+var ABSENT = []; // {date:'2026-05-07', name:'박재윤', cls:'Sprout1', reason:'수학여행', memo:''}
+var abYear, abMonth;
+(function(){ var d=new Date(); abYear=d.getFullYear(); abMonth=d.getMonth(); })();
+
+function absentMove(dir) {
+  abMonth += dir;
+  if (abMonth > 11) { abMonth = 0; abYear++; }
+  if (abMonth < 0) { abMonth = 11; abYear--; }
+  renderAbsent();
+}
+
+function renderAbsent() {
+  document.getElementById('absent-month-title').textContent = abYear + '년 ' + (abMonth+1) + '월 결석 예정';
+  var days = ['일','월','화','수','목','금','토'];
+  var todayISO = toISO();
+  var first = new Date(abYear, abMonth, 1).getDay();
+  var last = new Date(abYear, abMonth+1, 0).getDate();
+  var prevLast = new Date(abYear, abMonth, 0).getDate();
+
+  var html = '<div class="abs-grid">';
+  days.forEach(function(d){ html += '<div class="abs-day-name">'+d+'</div>'; });
+
+  // 이전달 빈 칸
+  for (var i=0; i<first; i++) {
+    var d = prevLast - first + 1 + i;
+    html += '<div class="abs-cell other-month"><div class="abs-date">' + d + '</div></div>';
+  }
+  // 이번달 날짜
+  for (var d=1; d<=last; d++) {
+    var iso = abYear + '-' + String(abMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var dow = new Date(abYear, abMonth, d).getDay();
+    var isToday = iso === todayISO;
+    var dateClass = 'abs-date' + (dow===0?' sun':dow===6?' sat':'') + (isToday?' today-num':'');
+    var cellClass = 'abs-cell' + (isToday?' today':'');
+    var abList = ABSENT.filter(function(a){ return a.date===iso; });
+    var tags = abList.map(function(a) {
+      var realIdx = ABSENT.indexOf(a);
+      return '<div class="abs-tag" onclick="event.stopPropagation()">' +
+        '<span class="abs-name">'+a.name+'</span>' +
+        '<button onclick="delAbsent('+realIdx+',event)">✕</button>' +
+        '<div class="abs-tooltip">' +
+          '<div class="tt-reason">'+a.reason+'</div>' +
+          (a.memo ? '<div class="tt-memo">'+a.memo+'</div>' : '') +
+          '<button class="tt-del" onclick="delAbsent('+realIdx+',event)">삭제하기</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    html += '<div class="'+cellClass+'" onclick="quickAbsent(\'' + iso + '\')">' +
+      '<div class="'+dateClass+'">'+d+'</div>' + tags + '</div>';
+  }
+  // 다음달 빈 칸
+  var remain = 7 - ((first + last) % 7);
+  if (remain < 7) {
+    for (var i=1; i<=remain; i++) {
+      html += '<div class="abs-cell other-month"><div class="abs-date">'+i+'</div></div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('absent-calendar').innerHTML = html;
+  renderAbsentSide();
+}
+
+function renderAbsentSide() {
+  var todayISO = toISO();
+  // 오늘 결석
+  var todayList = ABSENT.filter(function(a){ return a.date === todayISO; });
+  var todayEl = document.getElementById('side-today');
+  if (todayEl) {
+    todayEl.innerHTML = todayList.length ? todayList.map(function(a){
+      var i = ABSENT.indexOf(a);
+      return '<div class="abs-side-item">' +
+        '<div style="flex:1"><div class="abs-side-name">'+a.name+'</div>' +
+        '<div class="abs-side-reason">'+a.cls+' · '+a.reason+(a.memo?' · '+a.memo:'')+'</div></div>' +
+        '<button class="abs-side-del" onclick="delAbsent('+i+',event)">✕</button>' +
+      '</div>';
+    }).join('') : '<div class="abs-side-empty">결석 없음</div>';
+  }
+  // 이번 주 결석 (오늘 제외)
+  var d = new Date();
+  var dow = d.getDay();
+  var weekStart = new Date(d); weekStart.setDate(d.getDate() - dow);
+  var weekEnd = new Date(d); weekEnd.setDate(d.getDate() + (6 - dow));
+  function toD(dt){ return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+  var ws = toD(weekStart); var we = toD(weekEnd);
+  var weekList = ABSENT.filter(function(a){ return a.date >= ws && a.date <= we && a.date !== todayISO; });
+  var weekEl = document.getElementById('side-week');
+  if (weekEl) {
+    weekEl.innerHTML = weekList.length ? weekList.map(function(a){
+      var i = ABSENT.indexOf(a);
+      var dp = a.date.split('-');
+      return '<div class="abs-side-item">' +
+        '<div class="abs-side-date">'+parseInt(dp[1])+'/'+parseInt(dp[2])+'</div>' +
+        '<div style="flex:1"><div class="abs-side-name">'+a.name+'</div>' +
+        '<div class="abs-side-reason">'+a.cls+' · '+a.reason+'</div></div>' +
+        '<button class="abs-side-del" onclick="delAbsent('+i+',event)">✕</button>' +
+      '</div>';
+    }).join('') : '<div class="abs-side-empty">이번 주 결석 없음</div>';
+  }
+}
+
+function openAbsentAdd() {
+  document.getElementById('ab-date').value = toISO();
+  var sel = document.getElementById('ab-student');
+  sel.innerHTML = '<option value="">학생 선택...</option>' +
+    TD.map(function(r){ return '<option value="'+r.name+'|'+r.cls+'">'+r.name+' ('+r.cls+')</option>'; }).join('');
+  document.getElementById('ab-memo').value = '';
+  openOv('ov-absent');
+}
+
+function quickAbsent(iso) {
+  document.getElementById('ab-date').value = iso;
+  var sel = document.getElementById('ab-student');
+  sel.innerHTML = '<option value="">학생 선택...</option>' +
+    TD.map(function(r){ return '<option value="'+r.name+'|'+r.cls+'">'+r.name+' ('+r.cls+')</option>'; }).join('');
+  document.getElementById('ab-memo').value = '';
+  openOv('ov-absent');
+}
+
+function addAbsent() {
+  var date = document.getElementById('ab-date').value;
+  var sv = document.getElementById('ab-student').value;
+  if (!date || !sv) { alert('날짜와 학생을 선택해주세요'); return; }
+  var parts = sv.split('|');
+  ABSENT.push({ date:date, name:parts[0], cls:parts[1],
+    reason: document.getElementById('ab-reason').value,
+    memo: document.getElementById('ab-memo').value });
+  ABSENT.sort(function(a,b){ return a.date > b.date ? 1 : -1; });
+  closeOv('ov-absent');
+  renderAbsent();
+}
+
+function delAbsent(idx, e) {
+  e.stopPropagation();
+  ABSENT.splice(idx, 1);
+  renderAbsent();
+  renderAbsentSide();
+}
+
+// ===== 단어시험 =====
+// VOCAB_MONTHLY: { 'YYYY-MM': { cls: { name: [{date,score,special}] } } }
+// VOCAB_TOTALS:  { cls: 총점 }  (반별 총점)
+var vocabYear = new Date().getFullYear();
+var vocabMonth = new Date().getMonth() + 1; // 1-based
+var VOCAB_MONTHLY = {};   // 월별 데이터
+var VOCAB_HISTORY = [];   // [{year,month,label,data}] 이전 달 보관
+var VOCAB_TOTALS = {};    // {cls: 총점}
+
+// 샘플 데이터 (4월)
+VOCAB_MONTHLY['2026-04'] = {
+  'Sprout1': {
+    '박재윤': [{date:'2026-04-02',score:'23',special:''},{date:'2026-04-07',score:'23',special:''},{date:'2026-04-09',score:'23',special:''},{date:'2026-04-14',score:'22',special:''},{date:'2026-04-16',score:'19',special:''}],
+    '조윤아': [{date:'2026-04-02',score:'28',special:''},{date:'2026-04-07',score:'28',special:''},{date:'2026-04-09',score:'27',special:''},{date:'2026-04-14',score:'29',special:''},{date:'2026-04-16',score:'결석',special:'결석'}],
+    '송정우': [{date:'2026-04-02',score:'24',special:''},{date:'2026-04-07',score:'23',special:''},{date:'2026-04-09',score:'25',special:''},{date:'2026-04-14',score:'24',special:''},{date:'2026-04-16',score:'25',special:''}],
+    '주세훈': [{date:'2026-04-02',score:'25',special:''},{date:'2026-04-07',score:'26',special:''},{date:'2026-04-09',score:'23',special:''},{date:'2026-04-14',score:'24',special:''},{date:'2026-04-16',score:'24',special:''}],
+    '김민재': [{date:'2026-04-02',score:'23',special:''},{date:'2026-04-07',score:'28',special:''},{date:'2026-04-09',score:'27',special:''},{date:'2026-04-14',score:'26',special:''},{date:'2026-04-16',score:'결석',special:'결석'}]
+  },
+  'seed3': {
+    '최윤호': [{date:'2026-04-01',score:'17',special:''},{date:'2026-04-03',score:'18',special:''},{date:'2026-04-06',score:'16',special:''},{date:'2026-04-08',score:'19',special:''}],
+    '임서울': [{date:'2026-04-01',score:'18',special:''},{date:'2026-04-03',score:'18',special:''},{date:'2026-04-06',score:'20',special:''},{date:'2026-04-08',score:'18',special:''}],
+    '방은비': [{date:'2026-04-01',score:'17',special:''},{date:'2026-04-03',score:'16',special:''},{date:'2026-04-06',score:'18',special:''},{date:'2026-04-08',score:'19',special:''}],
+    '김초우': [{date:'2026-04-01',score:'',special:''},{date:'2026-04-03',score:'18',special:''},{date:'2026-04-06',score:'16',special:''},{date:'2026-04-08',score:'13',special:''}],
+    '진유림': [{date:'2026-04-01',score:'결석',special:'결석'},{date:'2026-04-03',score:'18',special:''},{date:'2026-04-06',score:'17',special:''},{date:'2026-04-08',score:'20',special:''}]
+  }
+};
+VOCAB_TOTALS['Sprout1'] = 30;
+VOCAB_TOTALS['seed3'] = 20;
+
+function vocabKey() {
+  return vocabYear + '-' + String(vocabMonth).padStart(2,'0');
+}
+function vocabCurData() {
+  var key = vocabKey();
+  if (!VOCAB_MONTHLY[key]) VOCAB_MONTHLY[key] = {};
+  return VOCAB_MONTHLY[key];
+}
+
+function vocabMonthMove(dir) {
+  vocabMonth += dir;
+  if (vocabMonth > 12) { vocabMonth = 1; vocabYear++; }
+  if (vocabMonth < 1) { vocabMonth = 12; vocabYear--; }
+  updVocabMonthTitle();
+  renderVocab();
+}
+
+function updVocabMonthTitle() {
+  var el = document.getElementById('vocab-month-title');
+  if (el) el.textContent = vocabYear + '년 ' + vocabMonth + '월';
+  // 이전 기록 칩
+  var chipWrap = document.getElementById('vocab-hist-chips');
+  var chipList = document.getElementById('vocab-hist-chip-list');
+  if (!chipWrap || !chipList) return;
+  if (VOCAB_HISTORY.length) {
+    chipWrap.style.display = 'flex';
+    chipList.innerHTML = VOCAB_HISTORY.map(function(h,i){
+      return '<button class="month-chip" onclick="viewVocabHistory('+i+')">'+h.label+'</button>';
+    }).join('');
+  } else {
+    chipWrap.style.display = 'none';
+  }
+}
+
+function updVocabClsSelect() {
+  var clsList = [];
+  TD.forEach(function(r){ if (clsList.indexOf(r.cls) < 0) clsList.push(r.cls); });
+  clsList.sort();
+  // vc-cls (점수입력 모달용)만 업데이트
+  var sel = document.getElementById('vc-cls');
+  if (sel) {
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">반 선택...</option>' + clsList.map(function(c){
+      return '<option>'+c+'</option>';
+    }).join('');
+    sel.value = cur;
+  }
+}
+
+function renderVocab() {
+  updVocabMonthTitle();
+  var area = document.getElementById('vocab-area');
+  // 재원생 기준 반 목록 (TD 순서 유지)
+  var clsList = [];
+  TD.forEach(function(r){ if (clsList.indexOf(r.cls) < 0) clsList.push(r.cls); });
+
+  if (!clsList.length) { area.innerHTML = '<div class="empty">등록된 학생이 없어요</div>'; return; }
+
+  var curData = vocabCurData();
+  var h = '';
+
+  clsList.forEach(function(cls) {
+    var total = VOCAB_TOTALS[cls] || '?';
+    var students = TD.filter(function(r){ return r.cls === cls; }).map(function(r){ return r.name; });
+    // data에 없는 학생도 행으로 표시
+    var data = curData[cls] || {};
+    students.forEach(function(name){ if (!data[name]) data[name] = []; });
+
+    // 반 섹션
+    h += '<div style="margin-bottom:2rem">';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+    h += '<span style="font-size:15px;font-weight:700;color:#1a1a1a">'+cls+'</span>';
+    h += '<span style="font-size:12px;color:#888">총점 '+total+'점</span>';
+    h += '</div>';
+    h += '<div id="vocab-table-'+cls+'"></div>';
+    h += '</div>';
+  });
+
+  area.innerHTML = h;
+
+  // 각 반 테이블 렌더
+  clsList.forEach(function(cls) {
+    var total = VOCAB_TOTALS[cls] || '?';
+    var students = TD.filter(function(r){ return r.cls === cls; }).map(function(r){ return r.name; });
+    var data = curData[cls] || {};
+    students.forEach(function(name){ if (!data[name]) data[name] = []; });
+    var subArea = document.getElementById('vocab-table-'+cls);
+    if (subArea) renderVocabTable(subArea, cls, data, total, true, vocabYear, vocabMonth, students);
+  });
+}
+
+function renderVocabTable(area, cls, data, total, editable, year, month, fixedStudents) {
+  var DOWNAMES = ['일','월','화','수','목','금','토'];
+  // 해당 월 전체 날짜 생성
+  var lastDay = new Date(year, month, 0).getDate(); // month는 1-based
+  var allDates = [];
+  for (var d=1; d<=lastDay; d++) {
+    var iso = year+'-'+String(month).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var dow = new Date(year, month-1, d).getDay();
+    allDates.push({iso:iso, d:d, dow:dow});
+  }
+
+  var students = fixedStudents ? fixedStudents : (data ? Object.keys(data).sort() : []);
+
+  // 점수 있는 날짜 파악 (있는 날 강조용)
+  var hasScore = {};
+  if (data) {
+    students.forEach(function(name){
+      (data[name]||[]).forEach(function(e){ if(e.score) hasScore[e.date]=true; });
+    });
+  }
+
+  function calcAvg(name) {
+    var scores=[];
+    ((data||{})[name]||[]).forEach(function(e){
+      var n=parseInt(e.score);
+      if (!isNaN(n) && total!=='?') scores.push(n/parseInt(total)*100);
+    });
+    if (!scores.length) return '-';
+    return Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length)+'%';
+  }
+
+  var h = '<div style="margin-bottom:10px;font-size:12px;color:#888">';
+  h += '총점: <strong style="color:#1a1a1a">'+(total||'?')+'점</strong>';
+  h += ' &nbsp;·&nbsp; 셀 클릭해서 점수 입력 &nbsp;·&nbsp; ';
+  h += '<span style="color:#c0392b">■</span> 70% 미만 &nbsp;';
+  h += '<span style="color:#0a7a5a">■</span> 90% 이상</div>';
+
+  h += '<div style="overflow-x:auto"><table class="vocab-table">';
+
+  // 헤더 행 1: 날짜 숫자
+  h += '<thead>';
+  h += '<tr><th style="text-align:left;min-width:72px;position:sticky;left:0;background:#f9f9f9;z-index:2">이름</th>';
+  allDates.forEach(function(dt){
+    var wkColor = dt.dow===0?'color:#c0392b':dt.dow===6?'color:#1a6fb5':'color:#555';
+    var hasBg = hasScore[dt.iso] ? 'background:#f0f7ff;' : '';
+    h += '<th style="'+hasBg+wkColor+';min-width:34px;font-weight:'+(hasScore[dt.iso]?'700':'400')+'">'+dt.d+'</th>';
+  });
+  // 헤더 행 2: 요일
+  h += '<th class="avg" rowspan="2">평균</th></tr>';
+  h += '<tr><th style="text-align:left;position:sticky;left:0;background:#f9f9f9;z-index:2;font-size:10px;color:#aaa">요일</th>';
+  allDates.forEach(function(dt){
+    var wkColor = dt.dow===0?'color:#c0392b':dt.dow===6?'color:#1a6fb5':'color:#aaa';
+    var hasBg = hasScore[dt.iso] ? 'background:#f0f7ff;' : '';
+    h += '<th style="'+hasBg+wkColor+';font-size:10px;font-weight:400">'+DOWNAMES[dt.dow]+'</th>';
+  });
+  h += '</tr></thead><tbody>';
+
+  if (!students.length) {
+    h += '<tr><td colspan="'+(allDates.length+2)+'" class="empty">아직 학생 데이터가 없어요.<br>+ 점수 입력으로 추가해보세요!</td></tr>';
+  } else {
+    students.forEach(function(name){
+      var moveBtnHtml = editable
+        ? '<button data-cls="'+cls+'" data-name="'+name+'" class="vocab-move-btn" style="margin-left:5px;background:none;border:1px solid #ddd;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;color:#888" title="반 이동">↔</button>'
+        : '';
+      h += '<tr><td class="name" style="position:sticky;left:0;background:#fafafa;z-index:1;white-space:nowrap">'+name+moveBtnHtml+'</td>';
+      var sm={};
+      ((data||{})[name]||[]).forEach(function(e){ sm[e.date]=e; });
+      allDates.forEach(function(dt){
+        var e = sm[dt.iso];
+        var hasBg = hasScore[dt.iso] ? 'background:#fafff8;' : '';
+        if (!e || !e.score) {
+          if (editable) h += '<td class="score-cell" style="'+hasBg+'cursor:pointer;color:#e0e0e0" data-cls="'+cls+'" data-name="'+name+'" data-date="'+dt.iso+'" title="클릭하여 입력">+</td>';
+          else h += '<td style="'+hasBg+'color:#e0e0e0">-</td>';
+        } else if (e.special) {
+          h += '<td class="absent-cell" style="'+hasBg+'font-size:11px">'+e.score+'</td>';
+        } else {
+          var n = parseInt(e.score);
+          var t = parseInt(total);
+          var pct = (!isNaN(n)&&!isNaN(t)) ? n/t*100 : null;
+          var col = pct===null?'#1a1a1a':pct>=90?'#0a7a5a':pct<70?'#c0392b':'#1a1a1a';
+          var bg = pct===null?hasBg:pct>=90?(hasBg||'background:#f0fff8;'):pct<70?(hasBg||'background:#fff5f5;'):hasBg;
+          if (editable) h += '<td class="score-cell" style="'+bg+'color:'+col+';font-weight:600" data-cls="'+cls+'" data-name="'+name+'" data-date="'+dt.iso+'">'+e.score+'</td>';
+          else h += '<td style="'+bg+'color:'+col+';font-weight:600">'+e.score+'</td>';
+        }
+      });
+      h += '<td class="avg">'+calcAvg(name)+'</td></tr>';
+    });
+  }
+
+  h += '</tbody></table></div>';
+  area.innerHTML = h;
+  if (editable) {
+    area.querySelectorAll('.score-cell').forEach(function(td){
+      td.addEventListener('click', function(){ activateScoreCell(this); });
+    });
+  }
+}
+
+var SPECIALS = ['결석','조퇴','지각','부모님'];
+
+function activateScoreCell(td) {
+  // 이미 편집 중인 셀 저장
+  var active = document.querySelector('.score-cell.editing');
+  if (active && active !== td) saveScoreCell(active);
+  if (td.classList.contains('editing')) return;
+
+  var cls = td.dataset.cls;
+  var name = td.dataset.name;
+  var date = td.dataset.date;
+  var curData = vocabCurData();
+  var entry = null;
+  ((curData[cls]||{})[name]||[]).forEach(function(e){ if(e.date===date) entry=e; });
+  var cur = (entry && entry.score && SPECIALS.indexOf(entry.score)<0) ? entry.score : '';
+  var special = (entry && SPECIALS.indexOf(entry.score)>=0) ? entry.score : '';
+
+  td.classList.add('editing');
+  td.innerHTML = '<input type="text" value="'+cur+'" placeholder="'+(special||'')+'" maxlength="10">';
+  var input = td.querySelector('input');
+  input.focus();
+  input.select();
+
+  // 특이사항 툴팁
+  td._vocabMeta = {cls:cls, name:name, date:date};
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveScoreCell(td); moveFocusRight(td); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelScoreCell(td, entry); }
+    if (e.key === 'Tab') { e.preventDefault(); saveScoreCell(td); moveFocusRight(td); }
+  });
+  input.addEventListener('blur', function() {
+    setTimeout(function(){ if(td.classList.contains('editing')) saveScoreCell(td); }, 120);
+  });
+}
+
+function saveScoreCell(td) {
+  if (!td.classList.contains('editing')) return;
+  var input = td.querySelector('input');
+  if (!input) return;
+  var val = input.value.trim();
+  var meta = td._vocabMeta;
+  var curData = vocabCurData();
+  if (!curData[meta.cls]) curData[meta.cls]={};
+  if (!curData[meta.cls][meta.name]) curData[meta.cls][meta.name]=[];
+  var isSpecial = SPECIALS.indexOf(val) >= 0;
+  var ex = null;
+  curData[meta.cls][meta.name].forEach(function(e){ if(e.date===meta.date) ex=e; });
+  if (val==='') {
+    curData[meta.cls][meta.name] = curData[meta.cls][meta.name].filter(function(e){ return e.date!==meta.date; });
+  } else if (ex) {
+    ex.score=val; ex.special=isSpecial?val:'';
+  } else {
+    curData[meta.cls][meta.name].push({date:meta.date, score:val, special:isSpecial?val:''});
+    curData[meta.cls][meta.name].sort(function(a,b){ return a.date>b.date?1:-1; });
+  }
+  td.classList.remove('editing');
+  // 테이블 전체 재렌더 없이 해당 셀만 업데이트
+  var total = VOCAB_TOTALS[meta.cls]||'?';
+  if (val==='') {
+    td.innerHTML = '+';
+    td.style.color='#e0e0e0'; td.style.fontWeight=''; td.style.background='';
+  } else if (isSpecial) {
+    td.innerHTML = val;
+    td.style.color='#c0392b'; td.style.fontWeight='600'; td.style.background='#fff5f5';
+  } else {
+    var n=parseInt(val); var t=parseInt(total);
+    var pct=(!isNaN(n)&&!isNaN(t))?n/t*100:null;
+    td.style.color=pct===null?'#1a1a1a':pct>=90?'#0a7a5a':pct<70?'#c0392b':'#1a1a1a';
+    td.style.background=pct===null?'':pct>=90?'#f0fff8':pct<70?'#fff5f5':'';
+    td.style.fontWeight='600';
+    td.innerHTML=val;
+  }
+  // 평균 셀 업데이트
+  updateAvgCell(td, meta.cls, meta.name, total);
+}
+
+function updateAvgCell(td, cls, name, total) {
+  var row = td.closest('tr');
+  if (!row) return;
+  var avgTd = row.querySelector('td.avg');
+  if (!avgTd) return;
+  var curData = vocabCurData();
+  var scores=[];
+  ((curData[cls]||{})[name]||[]).forEach(function(e){
+    var n=parseInt(e.score); var t=parseInt(total);
+    if (!isNaN(n)&&!isNaN(t)) scores.push(n/t*100);
+  });
+  avgTd.textContent = scores.length ? Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length)+'%' : '-';
+}
+
+function cancelScoreCell(td, entry) {
+  td.classList.remove('editing');
+  var cur = entry ? entry.score : '';
+  td.innerHTML = cur || '+';
+}
+
+function moveFocusRight(td) {
+  var cells = Array.from(document.querySelectorAll('.score-cell'));
+  var idx = cells.indexOf(td);
+  if (idx>=0 && idx<cells.length-1) {
+    setTimeout(function(){ activateScoreCell(cells[idx+1]); }, 30);
+  }
+}
+
+// 다른 곳 클릭 시 편집 중인 셀 저장
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.score-cell')) {
+    var active = document.querySelector('.score-cell.editing');
+    if (active) saveScoreCell(active);
+  }
+  var moveBtn = e.target.closest('.vocab-move-btn');
+  if (moveBtn) {
+    openVocabMove(moveBtn.getAttribute('data-cls'), moveBtn.getAttribute('data-name'));
+  }
+});
+
+function editScoreCell(td) { activateScoreCell(td); }
+
+function viewVocabHistory(idx) {
+  var h = VOCAB_HISTORY[idx];
+  var area = document.getElementById('vocab-area');
+  var clsList = [];
+  TD.forEach(function(r){ if (clsList.indexOf(r.cls) < 0) clsList.push(r.cls); });
+
+  var topHtml = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">' +
+    '<span style="font-size:15px;font-weight:600;color:#1a6fb5">'+h.label+' 기록</span>' +
+    '<button class="btn sm" onclick="renderVocab()">← 이번 달로</button></div>';
+  clsList.forEach(function(cls){
+    topHtml += '<div style="margin-bottom:2rem">';
+    topHtml += '<div style="font-size:15px;font-weight:700;margin-bottom:8px">'+cls+'</div>';
+    topHtml += '<div id="vh-'+cls+'"></div></div>';
+  });
+  area.innerHTML = topHtml;
+
+  clsList.forEach(function(cls){
+    var data = (h.data||{})[cls] || {};
+    var total = (h.totals||{})[cls] || '?';
+    var students = TD.filter(function(r){ return r.cls===cls; }).map(function(r){ return r.name; });
+    var sub = document.getElementById('vh-'+cls);
+    if (sub) renderVocabTable(sub, cls, data, total, false, h.year, h.month, students);
+  });
+}
+
+function openVocabAdd() {
+  updVocabClsSelect();
+  document.getElementById('vc-date').value = toISO();
+  // 첫 번째 반 자동 선택
+  var vcCls = document.getElementById('vc-cls');
+  if (vcCls && vcCls.options.length > 1) vcCls.selectedIndex = 1;
+  updVocabStudents();
+  updVocabTotalDisplay();
+  document.getElementById('vc-score').value = '';
+  document.getElementById('vc-special').value = '';
+  openOv('ov-vocab');
+}
+
+function updVocabStudents() {
+  var cls = document.getElementById('vc-cls').value;
+  var sel = document.getElementById('vc-student');
+  var students = TD.filter(function(r){ return r.cls===cls; });
+  sel.innerHTML = '<option value="">학생 선택...</option>' +
+    students.map(function(r){ return '<option>'+r.name+'</option>'; }).join('');
+  updVocabTotalDisplay();
+}
+
+function updVocabTotalDisplay() {
+  var cls = document.getElementById('vc-cls').value;
+  var el = document.getElementById('vc-total-display');
+  if (el) el.textContent = VOCAB_TOTALS[cls] || '?';
+}
+
+function addVocabScore() {
+  var date = document.getElementById('vc-date').value;
+  var cls = document.getElementById('vc-cls').value;
+  var name = document.getElementById('vc-student').value;
+  var score = document.getElementById('vc-score').value.trim();
+  var special = document.getElementById('vc-special').value;
+  if (!date||!cls||!name) { alert('날짜, 반, 학생을 선택해주세요'); return; }
+  if (!special&&!score) { alert('점수 또는 특이사항을 입력해주세요'); return; }
+  var curData = vocabCurData();
+  if (!curData[cls]) curData[cls]={};
+  if (!curData[cls][name]) curData[cls][name]=[];
+  var existing = null;
+  curData[cls][name].forEach(function(e){ if(e.date===date) existing=e; });
+  var finalScore = special ? special : score;
+  if (existing) { existing.score=finalScore; existing.special=special; }
+  else {
+    curData[cls][name].push({date:date, score:finalScore, special:special});
+    curData[cls][name].sort(function(a,b){ return a.date>b.date?1:-1; });
+  }
+  closeOv('ov-vocab');
+  renderVocab();
+}
+
+function editScore(cls, name, date) {
+  // legacy - editScoreCell 로 위임
+  var fakeTd = {dataset:{cls:cls,name:name,date:date}};
+  editScoreCell(fakeTd);
+}
+
+function fmtDateShort(iso){ var p=iso.split('-'); return parseInt(p[1])+'/'+parseInt(p[2]); }
+
+// 총점 설정
+
+
+// 단어시험 반 관리
+function openVocabClassMgr() {
+  renderVocabClassList();
+  openOv('ov-vocab-class');
+}
+
+function renderVocabClassList() {
+  var mk = vocabKey();
+  var curData = VOCAB_MONTHLY[mk] || {};
+  // TD에서 반 목록 + VOCAB_MONTHLY에서 반 목록 합치기
+  var clsSet = {};
+  TD_JUNIOR.forEach(function(r){ clsSet[r.cls] = true; });
+  TD_SENIOR.forEach(function(r){ clsSet[r.cls] = true; });
+  Object.keys(curData).forEach(function(c){ clsSet[c] = true; });
+  var clsList = Object.keys(clsSet).sort();
+
+  var el = document.getElementById('vocab-class-list');
+  if (!clsList.length) { el.innerHTML = '<div class="empty">반이 없어요</div>'; return; }
+
+  el.innerHTML = clsList.map(function(cls) {
+    var studentCount = Object.keys((curData[cls]||{})).length;
+    var tdCount = TD_JUNIOR.concat(TD_SENIOR).filter(function(r){ return r.cls === cls; }).length;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0">' +
+      '<input type="text" value="'+cls+'" id="vc-cls-'+cls.replace(/\s/g,'_')+'" style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-size:13px">' +
+      '<span style="font-size:11px;color:#aaa;white-space:nowrap">학생 '+tdCount+'명</span>' +
+      '<button class="btn sm" data-oldcls="'+cls+'" onclick="renameVocabClass(this)" style="white-space:nowrap">변경</button>' +
+    '</div>';
+  }).join('');
+}
+
+function addVocabClass() {
+  var newCls = document.getElementById('vc-new-cls').value.trim();
+  if (!newCls) { alert('반 이름을 입력해주세요'); return; }
+  var mk = vocabKey();
+  if (!VOCAB_MONTHLY[mk]) VOCAB_MONTHLY[mk] = {};
+  if (VOCAB_MONTHLY[mk][newCls]) { alert('이미 존재하는 반이에요'); return; }
+  VOCAB_MONTHLY[mk][newCls] = {};
+  VOCAB_TOTALS[newCls] = VOCAB_TOTALS[newCls] || 0;
+  document.getElementById('vc-new-cls').value = '';
+  renderVocabClassList();
+  renderVocab();
+  alert(newCls + ' 반이 추가됐어요!');
+}
+
+function renameVocabClass(btn) {
+  var oldCls = btn.getAttribute('data-oldcls');
+  var inputId = 'vc-cls-' + oldCls.replace(/\s/g, '_');
+  var newCls = document.getElementById(inputId).value.trim();
+  if (!newCls) { alert('반 이름을 입력해주세요'); return; }
+  if (newCls === oldCls) { alert('같은 이름이에요'); return; }
+
+  var mk = vocabKey();
+  var curData = VOCAB_MONTHLY[mk] || {};
+
+  // 단어시험 데이터 이동
+  if (curData[oldCls]) {
+    if (!curData[newCls]) curData[newCls] = {};
+    Object.keys(curData[oldCls]).forEach(function(name) {
+      curData[newCls][name] = curData[oldCls][name];
+    });
+    delete curData[oldCls];
+  }
+
+  // 총점 이동
+  if (VOCAB_TOTALS[oldCls] && !VOCAB_TOTALS[newCls]) {
+    VOCAB_TOTALS[newCls] = VOCAB_TOTALS[oldCls];
+  }
+
+  // TD에서도 반 이름 변경
+  TD_JUNIOR.forEach(function(r){ if(r.cls===oldCls) r.cls=newCls; });
+  TD_SENIOR.forEach(function(r){ if(r.cls===oldCls) r.cls=newCls; });
+
+  VOCAB_MONTHLY[mk] = curData;
+  renderVocabClassList();
+  renderVocab();
+  alert(oldCls + ' → ' + newCls + ' 반 이름이 변경됐어요!');
+}
+
+// 단어시험 반 이동
+var vocabMoveFrom = '';
+var vocabMoveName = '';
+
+function openVocabMove(cls, name) {
+  vocabMoveFrom = cls;
+  vocabMoveName = name;
+  document.getElementById('vm-name').textContent = name;
+  document.getElementById('vm-cur-cls').value = cls;
+  // 현재 있는 모든 반 목록
+  var clsList = [];
+  TD_JUNIOR.forEach(function(r){ if(clsList.indexOf(r.cls)<0) clsList.push(r.cls); });
+  TD_SENIOR.forEach(function(r){ if(clsList.indexOf(r.cls)<0) clsList.push(r.cls); });
+  clsList.sort();
+  var sel = document.getElementById('vm-new-cls');
+  sel.innerHTML = '<option value="">반 선택...</option>' +
+    clsList.filter(function(c){ return c !== cls; })
+    .map(function(c){ return '<option>'+c+'</option>'; }).join('');
+  openOv('ov-vocab-move');
+}
+
+function doVocabMove() {
+  var newCls = document.getElementById('vm-new-cls').value;
+  if (!newCls) { alert('이동할 반을 선택해주세요'); return; }
+  var mk = vocabKey();
+  // 기존 반에서 데이터 꺼내기
+  var curData = VOCAB_MONTHLY[mk] || {};
+  var studentData = (curData[vocabMoveFrom] || {})[vocabMoveName] || [];
+  // 새 반에 넣기
+  if (!curData[newCls]) curData[newCls] = {};
+  curData[newCls][vocabMoveName] = studentData;
+  // 기존 반에서 삭제
+  if (curData[vocabMoveFrom]) {
+    delete curData[vocabMoveFrom][vocabMoveName];
+  }
+  VOCAB_MONTHLY[mk] = curData;
+  closeOv('ov-vocab-move');
+  renderVocab();
+  alert(vocabMoveName + ' 학생을 ' + newCls + ' 반으로 이동했어요!');
+}
+
+function openVocabSettings() {
+  var clsList=[];
+  TD.forEach(function(r){ if(clsList.indexOf(r.cls)<0) clsList.push(r.cls); });
+  clsList.sort();
+  document.getElementById('vocab-settings-list').innerHTML = clsList.map(function(cls){
+    return '<div class="frow"><label>'+cls+'</label>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<input type="number" id="vt-'+cls+'" value="'+(VOCAB_TOTALS[cls]||'')+'" placeholder="예: 30" style="width:80px">' +
+      '<span style="color:#888;font-size:13px">점</span>' +
+      '<button class="btn sm" data-cls="'+cls+'" onclick="saveVocabTotalBtn(this)">저장</button></div></div>';
+  }).join('');
+  openOv('ov-vocab-settings');
+}
+
+function saveVocabTotalBtn(btn) {
+  var cls = btn.getAttribute('data-cls');
+  saveVocabTotal(cls);
+}
+function saveVocabTotal(cls) {
+  var val = parseInt(document.getElementById('vt-'+cls).value);
+  if (!val||val<1) { alert('올바른 숫자를 입력해주세요'); return; }
+  VOCAB_TOTALS[cls] = val;
+  updVocabTotalDisplay();
+  renderVocab();
+  alert(cls+' 총점을 '+val+'점으로 저장했어요!');
+}
+
+var vcClsEl = document.getElementById('vc-cls'); if (vcClsEl) vcClsEl.addEventListener('change', updVocabStudents);
+['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e){
+    if (e.target===this) closeOv(id);
+  });
+});
+
+updCls('junior'); rt('junior'); updStats('junior'); rwn(); fb(); renderMembers(); renderVocab(); renderAbsent();
+updVocabClsSelect();
+renderVocab();
+// 결석달력 초기화
+renderAbsent();
+
+// ── 공지사항 ──
+var NOTICES = JSON.parse(localStorage.getItem('bomnal_notices') || '[]');
+var ALL_TEACHERS = ['황현아','이설경','양준식','정상은','한유미','이민우','임채은','황호영'];
+
+function saveNoticesLocal() {
+  localStorage.setItem('bomnal_notices', JSON.stringify(NOTICES));
+}
+
+function renderNotices() {
+  var nc = document.getElementById('nc');
+  if (nc) nc.textContent = NOTICES.length;
+
+  var el = document.getElementById('notice-list');
+  if (!el) return;
+  if (!NOTICES.length) {
+    el.innerHTML = '<div class="empty">아직 공지가 없어요. + 공지 작성으로 추가해보세요!</div>';
+    return;
+  }
+  el.innerHTML = NOTICES.map(function(n, idx) {
+    var isAll = n.targets && n.targets[0] === '전체';
+    var targetHtml = isAll
+      ? '<span class="ntag all">전체 선생님</span>'
+      : (n.targets||[]).map(function(t){ return '<span class="ntag">'+t+'쌤</span>'; }).join('');
+    var readNames = n.reads || [];
+    var unreadNames = (isAll ? ALL_TEACHERS : (n.targets||[])).filter(function(t){ return readNames.indexOf(t) < 0; });
+    var readHtml = readNames.length
+      ? readNames.map(function(t){ return '<span class="rchip2">✓ '+t+'</span>'; }).join('')
+      : '<span style="font-size:11px;color:#aaa">아직 없음</span>';
+    var unreadHtml = unreadNames.length
+      ? '<span style="font-size:11px;color:#aaa;margin-left:6px">미확인: </span>' + unreadNames.map(function(t){ return '<span class="uchip2">'+t+'</span>'; }).join('')
+      : '';
+    var d = new Date(n.createdAt);
+    var dateStr = (d.getMonth()+1)+'월 '+d.getDate()+'일 '+d.getHours()+'시'+d.getMinutes()+'분';
+    return '<div class="notice-card">' +
+      '<div class="notice-header">' +
+        '<div><div class="notice-title2">'+n.title+'</div><div class="notice-meta2">'+dateStr+'</div></div>' +
+        '<button class="notice-del-btn" onclick="deleteNotice('+idx+')">삭제</button>' +
+      '</div>' +
+      '<div class="notice-targets">'+targetHtml+'</div>' +
+      '<div class="notice-body2">'+n.body+'</div>' +
+      '<div class="notice-reads">'+readHtml+unreadHtml+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openWriteNotice() {
+  document.getElementById('n-all').checked = false;
+  document.querySelectorAll('.n-teacher').forEach(function(cb){ cb.checked = false; });
+  document.getElementById('n-title').value = '';
+  document.getElementById('n-body').value = '';
+  openOv('ov-notice');
+}
+
+function toggleAllTeachers(cb) {
+  document.querySelectorAll('.n-teacher').forEach(function(el){ el.checked = cb.checked; });
+}
+
+function saveNotice() {
+  var title = document.getElementById('n-title').value.trim();
+  var body = document.getElementById('n-body').value.trim();
+  if (!title || !body) { alert('제목과 내용을 입력해주세요'); return; }
+
+  var allChecked = document.getElementById('n-all').checked;
+  var targets = [];
+  if (allChecked) {
+    targets = ['전체'];
+  } else {
+    document.querySelectorAll('.n-teacher:checked').forEach(function(cb){ targets.push(cb.value); });
+  }
+  if (!targets.length) { alert('수신 대상을 선택해주세요'); return; }
+
+  NOTICES.unshift({
+    title: title,
+    body: body,
+    targets: targets,
+    reads: [],
+    createdAt: new Date().toISOString()
+  });
+  saveNoticesLocal();
+  closeOv('ov-notice');
+  renderNotices();
+}
+
+function deleteNotice(idx) {
+  if (!confirm('공지를 삭제할까요?')) return;
+  NOTICES.splice(idx, 1);
+  saveNoticesLocal();
+  renderNotices();
+}
+
+
+function doSelectAll() {
+  var ta = document.getElementById('sms-content');
+  ta.select();
+  ta.setSelectionRange(0, 99999);
+  try {
+    document.execCommand('copy');
+    alert('복사됐어요! 문자앱에 붙여넣기 하세요 :)');
+  } catch(e) {
+    alert('위 내용을 길게 눌러서 복사해주세요');
+  }
+}
+
+
+// ── 설정 ──
+var DEFAULT_TEACHERS = [
+  {name:'황현아', role:'강사'},
+  {name:'이설경', role:'강사'},
+  {name:'양준식', role:'강사'},
+  {name:'정상은', role:'강사'},
+  {name:'한유미', role:'강사'},
+  {name:'이민우', role:'온라인'},
+  {name:'임채은', role:'온라인'},
+  {name:'황호영', role:'데스크'}
+];
+
+var TEACHERS = JSON.parse(localStorage.getItem('bomnal_teachers') || JSON.stringify(DEFAULT_TEACHERS));
+var ACCOUNT = JSON.parse(localStorage.getItem('bomnal_account') || '{"bank":"카카오뱅크","number":"","holder":""}');
+
+function saveTeachers() {
+  localStorage.setItem('bomnal_teachers', JSON.stringify(TEACHERS));
+}
+
+function renderSettings() {
+  // 선생님 목록
+  var el = document.getElementById('teacher-list');
+  if (el) {
+    if (!TEACHERS.length) {
+      el.innerHTML = '<div style="color:#aaa;font-size:13px;padding:8px 0">등록된 선생님이 없어요</div>';
+    } else {
+      el.innerHTML = TEACHERS.map(function(t, i) {
+        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0">' +
+          '<span style="flex:1;font-size:13px;font-weight:600">'+t.name+'</span>' +
+          '<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#e8f0fb;color:#1a5fa0">'+t.role+'</span>' +
+          '<button onclick="removeTeacher('+i+')" class="btn sm" style="border-color:#c0392b;color:#c0392b;padding:3px 8px">삭제</button>' +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  // 계좌 정보
+  var bank = document.getElementById('account-bank');
+  var num = document.getElementById('account-number');
+  var holder = document.getElementById('account-holder');
+  if (bank) bank.value = ACCOUNT.bank || '';
+  if (num) num.value = ACCOUNT.number || '';
+  if (holder) holder.value = ACCOUNT.holder || '';
+
+  // 문자 템플릿 미리보기
+  updateSmsTemplatePreview();
+
+  // 담당선생님 드롭박스 업데이트
+  updateTeacherDropdowns();
+}
+
+function addTeacher() {
+  var name = document.getElementById('new-teacher-name').value.trim();
+  var role = document.getElementById('new-teacher-role').value;
+  if (!name) { alert('선생님 이름을 입력해주세요'); return; }
+  if (TEACHERS.find(function(t){ return t.name === name; })) { alert('이미 있는 선생님이에요'); return; }
+  TEACHERS.push({name: name, role: role});
+  saveTeachers();
+  document.getElementById('new-teacher-name').value = '';
+  renderSettings();
+}
+
+function removeTeacher(i) {
+  if (!confirm(TEACHERS[i].name + ' 선생님을 삭제할까요?')) return;
+  TEACHERS.splice(i, 1);
+  saveTeachers();
+  renderSettings();
+}
+
+function saveAccountInfo() {
+  ACCOUNT = {
+    bank: document.getElementById('account-bank').value.trim(),
+    number: document.getElementById('account-number').value.trim(),
+    holder: document.getElementById('account-holder').value.trim()
+  };
+  localStorage.setItem('bomnal_account', JSON.stringify(ACCOUNT));
+  var saved = document.getElementById('account-saved');
+  if (saved) { saved.style.display = 'block'; setTimeout(function(){ saved.style.display = 'none'; }, 2000); }
+  updateSmsTemplatePreview();
+}
+
+function updateSmsTemplatePreview() {
+  var el = document.getElementById('sms-template-preview');
+  if (!el) return;
+  var accountInfo = ACCOUNT.number
+    ? ACCOUNT.bank + ' ' + ACCOUNT.number + ' (' + ACCOUNT.holder + ')'
+    : '카카오뱅크 (계좌번호 미등록)';
+  el.textContent = 'ㅇㅇㅇ 학생 새 교재 주문 예정입니다.\n\n' +
+    '교재: 주니어리딩튜터1\n' +
+    '결제금: 27,900원\n' +
+    '결제방식: 계좌이체\n' +
+    '결제계좌: ' + accountInfo + '\n\n' +
+    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.\n감사합니다 :) 봄날 English';
+}
+
+function updateTeacherDropdowns() {
+  var teacherOpts = '<option value="">선택...</option>' +
+    ['원장님'].concat(TEACHERS.map(function(t){ return t.name; }))
+    .map(function(n){ return '<option>'+n+'</option>'; }).join('');
+
+  // 공지 모달 선생님 체크박스 업데이트
+  var noticeTeachers = document.getElementById('notice-teacher-list');
+  if (noticeTeachers) {
+    noticeTeachers.innerHTML = TEACHERS.map(function(t){
+      return '<label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:400;cursor:pointer">'+
+        '<input type="checkbox" class="n-teacher" value="'+t.name+'"> '+t.name+'쌤'+(t.role!=='강사'?' ('+t.role+')':'')+'</label>';
+    }).join('');
+  }
+
+  // 교재 담당 선생님 드롭박스
+  var bManager = document.getElementById('b-manager');
+  if (bManager) {
+    var cur = bManager.value;
+    bManager.innerHTML = teacherOpts;
+    bManager.value = cur;
+  }
+
+  // 교재 필터 드롭박스
+  var qBookT = document.getElementById('q-book-t');
+  if (qBookT) {
+    var cur2 = qBookT.value;
+    qBookT.innerHTML = '<option value="">전체 담당</option>' +
+      ['원장님'].concat(TEACHERS.map(function(t){ return t.name; }))
+      .map(function(n){ return '<option>'+n+'</option>'; }).join('');
+    qBookT.value = cur2;
+  }
+}
+
+// 문자에 계좌 정보 반영
+function getAccountStr() {
+  if (ACCOUNT.number) {
+    return ACCOUNT.bank + ' ' + ACCOUNT.number + ' (' + ACCOUNT.holder + ')';
+  }
+  return '카카오뱅크 (설정 탭에서 계좌 등록)';
+}
+
+
+// ── 시간표 ──
+var SCHEDULE_DATA = {"월": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "4:30-5:30", "name": "Sprout2 초6", "students": "김성준 / 신지윤 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1C", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout2 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "화": {"Alicia": [{"time": "2:20-3:20", "name": "seed5 초4", "students": "장지서 / 노아영"}, {"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 유민호 / 최현준 / 이준우 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2B", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "수": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초3) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 고현서 / 김성윤 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 고현준 / 강백현 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌중3A", "students": "최윤서 / 김민하 / 한예주 / 이예주 / 이가연 / 전수윤"}, {"time": "8:00-10:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed15 초5", "students": "김수현"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 이현서 / 박시언 / 유준혁 / 정유진 / 강지율"}, {"time": "4:30-6:30", "name": "종촌중1B", "students": "김민성 / 윤채이"}, {"time": "6:30-8:00", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}], "현아T": [{"time": "3:00-5:00", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준 / 신유나"}, {"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "5:00-7:00", "name": "종촌고 고등1A", "students": "장서희 / 전용성 / 장동훈 / 신우연 / 박서연 / 강예리 / 윤태원"}, {"time": "7:00-9:00", "name": "종촌고2A", "students": "박지민 / 마수민 / 고은채"}], "유미T": [{"time": "3:20-4:20", "name": "Sprout3 초6", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "6:00-8:00", "name": "어진중2A", "students": "신유나 / 송지원"}, {"time": "8:00-10:00", "name": "어진중3A", "students": "임서현 / 이하윤 / 서진우 / 정한비"}]}, "목": {"Alicia": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 최현준 / 이준우 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:30-6:30", "name": "종촌중2A", "students": "김수현 / 박건우 / 김루아 / 이래오 / 김윤하 / 최경재 / 김도윤 / 조민준 / 문준희"}, {"time": "6:30-8:30", "name": "어진중3B", "students": "노현승 / 김승후 / 오연규 / 양현우 / 윤지원 / 지예준 / 정민섭"}, {"time": "8:30-10:30", "name": "종촌고3", "students": "양기호 / 이채은 / 윤현서 / 성정은 / 한예인 / 오예주 / 이영은 / 박서연 / 김태은"}], "Claire": [{"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:20-5:20", "name": "Sprout2 초6", "students": "신지윤 / 김성준 / 김석현 / 박채연 / 장예진 / 김시완"}, {"time": "5:20-6:20", "name": "Sprout5 초6", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}], "상은T": [{"time": "3:10-4:40", "name": "Sprout6 초6", "students": "고하은 / 박지안 / 윤사랑"}, {"time": "4:40-6:00", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "6:00-8:00", "name": "종촌중2C", "students": "양서진 / 최윤채 / 남효인 / 김강우 / 이예나 / 유민준"}], "현아T": [{"time": "3:10-4:40", "name": "Sprout1 초6", "students": "조윤아 / 송정우 / 박재윤 / 주세훈 / 김민재"}, {"time": "5:00-7:00", "name": "종촌고1B", "students": "정한결 / 주현우 / 엄태준 / 황가온 / 구자현 / 이서준 / 전상훈 / 이은채(5/7)"}, {"time": "7:00-9:00", "name": "고운고1", "students": "이시온 / 진시훈"}], "유미T": [{"time": "4:30-6:30", "name": "종촌중1B", "students": "김현중 / 정은우"}, {"time": "6:30-8:00", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}, {"time": "8:00-10:00", "name": "종촌중3B", "students": "민경준 / 이혜원 / 민태기 / 오재민 / 윤선오 / 이상원"}], "준식T": [{"time": "4:30-6:30", "name": "종촌중1D", "students": "조우진 / 이지원 / 김승훈 / 송혜원 / 송혜주 / 김준범"}, {"time": "6:30-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}, "금": {"Alicia": [{"time": "2:20-3:20", "name": "seed14 초4", "students": "김수현(초4) / 김수아 / 윤정원 / 인서은 / 권민준"}, {"time": "3:20-4:20", "name": "Seed4 초5", "students": "김민찬 / 김성윤 / 고현서 / 진유찬 / 송윤우 / 박시윤 / 유하진"}, {"time": "4:30-5:50", "name": "종촌중1A", "students": "김채아 / 배수진 / 강백현 / 고현준 / 방은별 / 신예담 / 이윤우 / 오정윤"}, {"time": "6:00-8:00", "name": "종촌고2B", "students": "권민준 / 신지윤B / 최유진 / 유시현 / 신지훈"}, {"time": "8:00-10:00", "name": "고운고2", "students": "윤호 / 장예준 / 정다현"}], "Claire": [{"time": "2:20-3:20", "name": "Seed5 초4", "students": "장지서 / 노아영 / 배관영 / 진예은"}, {"time": "3:20-4:20", "name": "Seed12 4,5학년", "students": "박도윤 / 김도현 / 문예원 / 송서진 / 송시윤 / 이은재 / 남태윤 / 구나영"}, {"time": "4:30-5:30", "name": "Sprout5 6학년", "students": "정재준 / 한주원 / 서가온 / 홍주훈 / 이준서"}, {"time": "5:30-6:30", "name": "seed13 초5", "students": "왕지아 / 김재민 / 이예슬 / 김수빈 / 정현준 / 박희재 / 심이레 / 김가온"}], "상은T": [{"time": "2:20-3:20", "name": "Seed3 초4", "students": "임서율 / 방은비 / 최윤호 / 김초우 / 진유림 / 유수예"}, {"time": "3:20-4:20", "name": "Sprout4 초6", "students": "노현서 / 박시언 / 유준혁 / 정유진 / 강지율 / 이현서"}, {"time": "4:30-5:30", "name": "종촌중1E", "students": "임승혁 / 박가온 / 김유은 / 손나율 / 김은기 / 윤예하 / 박형식"}, {"time": "5:30-6:50", "name": "종촌중2D", "students": "왕지후 / 서다현 / 고은서 / 정준희 / 김지원"}, {"time": "7:00-8:00", "name": "종촌중2C", "students": "이서아 / 임서준 / 이혜리 / 강민서 / 이서윤 / 조희원 / 남소율 / 천승재"}], "현아T": [{"time": "4:30-6:30", "name": "어진중2B", "students": "강시연 / 박상빈 / 김도연 / 황해솔 / 여민준"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "유미T": [{"time": "3:20-4:20", "name": "Seed11 5학년", "students": "김해중 / 이준우 / 최현준 / 유민호 / 이서진 / 임도희 / 조국 / 김도윤"}, {"time": "4:20-5:20", "name": "Sprout3 6학년", "students": "이재희 / 김규연 / 김선우 / 이건우 / 김하린 / 김민서 / 이예지 / 임건휘"}, {"time": "5:30-6:30", "name": "어진중1A", "students": "박세원 / 손효원 / 임도훈"}], "준식T": [{"time": "4:30-6:30", "name": "이상원 / 지예준", "students": "이상원 / 지예준"}, {"time": "8:00-10:00", "name": "종촌고1C", "students": "양가연 / 황하은"}]}};
+
+var currentScheduleDay = '월';
+
+function showScheduleDay(day) {
+  currentScheduleDay = day;
+  renderSchedule();
+}
+
+function parseTime(t) {
+  // "4:30-6:30" -> 시작시간 분으로 변환
+  if(!t) return 0;
+  var m = t.match(/(\d+):(\d+)/);
+  if(!m) return 0;
+  return parseInt(m[1])*60 + parseInt(m[2]);
+}
+
+function timeToY(minVal, maxVal, t, totalH) {
+  var mins = parseTime(t);
+  return Math.round((mins - minVal) / (maxVal - minVal) * totalH);
+}
+
+function getEndTime(t) {
+  if(!t) return '';
+  var m = t.match(/(\d+:\d+)-(\d+:\d+)/);
+  return m ? m[2] : t;
+}
+
+var TEACHER_COLORS = {
+  'Alicia':'#e8f0fb','Claire':'#e8f5ef','상은T':'#fff5e6','현아T':'#fde8f0',
+  '유미T':'#f0e8fb','준식T':'#e8fbf5','이설경T':'#fbeee8','한유미T':'#f5fbe8',
+  '황현아T':'#fde8f0','양준식T':'#e8fbf5','정상은T':'#fff5e6'
+};
+var TEACHER_BORDER = {
+  'Alicia':'#1a5fa0','Claire':'#2d7a5f','상은T':'#d4800a','현아T':'#b5295a',
+  '유미T':'#6a3ab5','준식T':'#0a8a6a','이설경T':'#b5500a','한유미T':'#5a8a0a',
+  '황현아T':'#b5295a','양준식T':'#0a8a6a','정상은T':'#d4800a'
+};
+
+function renderSchedule() {
+  var area = document.getElementById('schedule-area');
+  if(!area) return;
+  var days = ['월','화','수','목','금'];
+
+  // 전체 시간 범위 계산
+  var allTimes = [];
+  days.forEach(function(day){
+    var dayData = SCHEDULE_DATA[day] || {};
+    Object.keys(dayData).forEach(function(t){
+      (dayData[t]||[]).forEach(function(c){
+        if(c.time){ allTimes.push(parseTime(c.time)); allTimes.push(parseTime(getEndTime(c.time))); }
+      });
+    });
+  });
+
+  if(!allTimes.length) { area.innerHTML = '<div class="empty">시간표 데이터가 없어요</div>'; return; }
+
+  var minT = Math.floor(Math.min.apply(null,allTimes)/30)*30;
+  var maxT = Math.ceil(Math.max.apply(null,allTimes)/30)*30;
+  var PX = 2.2;
+  var totalH = Math.round((maxT-minT)*PX);
+  var COL_W = 145;
+  var TIME_W = 44;
+  var GAP = 10;
+
+  // 시간 눈금
+  function makeTimeGrid() {
+    var s = '';
+    for(var t=minT; t<=maxT; t+=30) {
+      var y = Math.round((t-minT)*PX);
+      var label = Math.floor(t/60)+':'+(t%60===0?'00':'30');
+      s += '<div style="position:absolute;top:'+y+'px;left:0;width:'+TIME_W+'px;font-size:10px;color:#aaa;text-align:right;padding-right:5px;transform:translateY(-50%);line-height:1">'+label+'</div>';
+      s += '<div style="position:absolute;top:'+y+'px;left:'+TIME_W+'px;right:0;border-top:1px solid '+(t%60===0?'#e0deda':'#f0eeea')+';pointer-events:none"></div>';
+    }
+    return s;
+  }
+
+  // 전체 넓이
+  var totalW = TIME_W;
+  days.forEach(function(day){ totalW += (Object.keys(SCHEDULE_DATA[day]||{}).length)*COL_W + GAP; });
+
+  var h = '<div style="min-width:'+totalW+'px">';
+
+  // 요일+선생님 헤더
+  h += '<div style="display:flex;margin-left:'+TIME_W+'px;position:sticky;top:0;z-index:10;background:#fff">';
+  days.forEach(function(day, di){
+    var teachers = Object.keys(SCHEDULE_DATA[day]||{});
+    if(!teachers.length) return;
+    var dayW = teachers.length * COL_W;
+    h += '<div style="min-width:'+dayW+'px;background:#1a1916;color:#fff;font-size:12px;font-weight:700;text-align:center;padding:5px 0;'+(di>0?'border-left:3px solid #fff':'')+'">'+day+'요일</div>';
+    h += '<div style="min-width:'+GAP+'px"></div>';
+  });
+  h += '</div>';
+
+  h += '<div style="display:flex;margin-left:'+TIME_W+'px;position:sticky;top:27px;z-index:10;background:#fff;border-bottom:2px solid #e8e6e0">';
+  days.forEach(function(day, di){
+    var teachers = Object.keys(SCHEDULE_DATA[day]||{});
+    if(!teachers.length) return;
+    teachers.forEach(function(teacher){
+      var color = TEACHER_BORDER[teacher]||'#1a5fa0';
+      var bg = TEACHER_COLORS[teacher]||'#f0f0f0';
+      h += '<div style="min-width:'+COL_W+'px;padding:5px 6px;font-size:11px;font-weight:700;text-align:center;border-left:2px solid '+color+';background:'+bg+'">'+teacher+'</div>';
+    });
+    h += '<div style="min-width:'+GAP+'px;background:#fff"></div>';
+  });
+  h += '</div>';
+
+  // 그리드 본체
+  h += '<div style="position:relative;height:'+(totalH+20)+'px">';
+  h += '<div style="position:absolute;top:0;left:0;width:'+TIME_W+'px;height:100%">'+makeTimeGrid()+'</div>';
+
+  var xCursor = TIME_W;
+  days.forEach(function(day, di){
+    var dayData = SCHEDULE_DATA[day]||{};
+    var teachers = Object.keys(dayData);
+    if(!teachers.length) { xCursor += GAP; return; }
+
+    // 요일 구분 배경
+    if(di > 0) {
+      h += '<div style="position:absolute;top:0;left:'+(xCursor-GAP)+'px;width:'+GAP+'px;height:100%;background:#f7f6f2"></div>';
+    }
+
+    teachers.forEach(function(teacher){
+      var classes = dayData[teacher]||[];
+      var color = TEACHER_BORDER[teacher]||'#1a5fa0';
+      var bg = TEACHER_COLORS[teacher]||'#f5f5f5';
+
+      h += '<div style="position:absolute;top:0;left:'+xCursor+'px;width:'+COL_W+'px;height:100%;border-left:1px solid #f0eeea"></div>';
+
+      classes.forEach(function(cls, ci){
+        if(!cls.time) return;
+        var sm = parseTime(cls.time);
+        var em = parseTime(getEndTime(cls.time));
+        if(em<=sm) em=sm+60;
+        var yTop = Math.round((sm-minT)*PX);
+        var yH = Math.max(28, Math.round((em-sm)*PX)-2);
+        var cardId = 'sc-'+day+'-'+encodeURIComponent(teacher)+'-'+ci;
+
+        h += '<div id="'+cardId+'" class="sched-card" data-day="'+day+'" data-teacher="'+teacher+'" data-ci="'+ci+'" ';
+        h += 'style="position:absolute;top:'+yTop+'px;left:'+(xCursor+1)+'px;width:'+(COL_W-4)+'px;height:'+yH+'px;';
+        h += 'background:'+bg+';border:1.5px solid '+color+';border-radius:4px;overflow:hidden;cursor:pointer;box-sizing:border-box">';
+        h += '<div style="padding:2px 4px;height:100%;overflow:hidden">';
+        h += '<div style="font-size:9px;color:'+color+';font-weight:700;line-height:1.3">'+cls.time+'</div>';
+        h += '<div style="font-size:11px;font-weight:700;color:#1a1916;line-height:1.3;overflow:hidden">'+cls.name+'</div>';
+        if(yH > 50) {
+          var arr = cls.students.split('/').map(function(s){return s.trim();}).filter(Boolean);
+          var lines = [];
+          for(var si=0;si<arr.length;si+=2) lines.push(arr[si]+(arr[si+1]?' · '+arr[si+1]:''));
+          h += '<div style="font-size:9px;color:#777;margin-top:1px;line-height:1.5;overflow:hidden">'+lines.join('<br>')+'</div>';
+        }
+        h += '</div>';
+        h += '<div id="edit-'+cardId+'" style="display:none;position:absolute;inset:0;background:#fff;z-index:5;padding:5px;overflow-y:auto">';
+        h += '<input id="ename-'+cardId+'" value="'+cls.name.replace(/"/g,'&quot;')+'" style="width:100%;padding:3px 4px;border:1px solid #ddd;border-radius:3px;font-size:10px;margin-bottom:2px;box-sizing:border-box">';
+        h += '<input id="etime-'+cardId+'" value="'+cls.time+'" style="width:100%;padding:3px 4px;border:1px solid #ddd;border-radius:3px;font-size:10px;margin-bottom:2px;box-sizing:border-box">';
+        h += '<textarea id="estudents-'+cardId+'" style="width:100%;padding:3px 4px;border:1px solid #ddd;border-radius:3px;font-size:9px;resize:none;height:45px;box-sizing:border-box;font-family:inherit">'+cls.students+'</textarea>';
+        h += '<div style="display:flex;gap:2px;margin-top:2px">';
+        h += '<button style="flex:1;padding:2px;background:#1a1916;color:#fff;border:none;border-radius:2px;font-size:9px;cursor:pointer" data-day="'+day+'" data-teacher="'+teacher+'" data-ci="'+ci+'" data-cardid="'+cardId+'" onclick="saveScheduleCard(this.dataset.day,this.dataset.teacher,parseInt(this.dataset.ci),this.dataset.cardid)">저장</button>';
+        h += '<button style="flex:1;padding:2px;background:#f0f0f0;border:none;border-radius:2px;font-size:9px;cursor:pointer" data-cardid="'+cardId+'" onclick="event.stopPropagation();toggleScheduleEdit(this.dataset.cardid,false)">취소</button>';
+        h += '<button style="padding:2px 4px;background:#e8f0fb;color:#1a5fa0;border:none;border-radius:2px;font-size:9px;cursor:pointer" data-day="'+day+'" data-teacher="'+teacher+'" data-ci="'+ci+'" onclick="event.stopPropagation();openMoveSchedule(this.dataset.day,this.dataset.teacher,parseInt(this.dataset.ci))">이동</button>';
+      h += '<button style="padding:2px 4px;background:#fdecea;color:#c0392b;border:none;border-radius:2px;font-size:9px;cursor:pointer" data-day="'+day+'" data-teacher="'+teacher+'" data-ci="'+ci+'" onclick="event.stopPropagation();deleteScheduleClass(this.dataset.day,this.dataset.teacher,parseInt(this.dataset.ci))">삭제</button>';
+        h += '</div></div></div>';
+      });
+      xCursor += COL_W;
+    });
+    xCursor += GAP;
+  });
+
+  h += '</div></div>';
+
+  // 수업 추가 버튼
+  h += '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;align-items:center">';
+  h += '<span style="font-size:11px;color:#aaa">+ 수업추가:</span>';
+  days.forEach(function(day){
+    Object.keys(SCHEDULE_DATA[day]||{}).forEach(function(teacher){
+      h += '<button class="btn sm" data-day="'+day+'" data-teacher="'+teacher+'" onclick="addScheduleClass(this.dataset.day,this.dataset.teacher)" style="font-size:10px;padding:2px 7px">'+day+' '+teacher+'</button>';
+    });
+  });
+  h += '<button class="btn sm" onclick="addScheduleTeacher()" style="border-style:dashed;font-size:10px;padding:2px 7px">+ 선생님</button>';
+  h += '</div>';
+
+  area.innerHTML = h;
+
+  // 카드 클릭 이벤트
+  area.querySelectorAll('.sched-card').forEach(function(card){
+    card.addEventListener('click', function(e){
+      if(e.target.tagName==='BUTTON'||e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+      toggleScheduleEdit(card.id, document.getElementById('edit-'+card.id).style.display==='none');
+    });
+  });
+}
+
+function toggleScheduleEdit(cardId, show) {
+  var editArea = document.getElementById('edit-'+cardId);
+  var card = document.getElementById(cardId);
+  if(!editArea) return;
+  editArea.style.display = show ? 'block' : 'none';
+  if(card) card.classList.toggle('editing', show);
+}
+
+function saveScheduleCard(day, teacher, ci, cardId) {
+  var name = document.getElementById('ename-'+cardId).value.trim();
+  var time = document.getElementById('etime-'+cardId).value.trim();
+  var students = document.getElementById('estudents-'+cardId).value.trim();
+  if(!SCHEDULE_DATA[day]) SCHEDULE_DATA[day] = {};
+  if(!SCHEDULE_DATA[day][teacher]) SCHEDULE_DATA[day][teacher] = [];
+  SCHEDULE_DATA[day][teacher][ci] = {name:name, time:time, students:students};
+  saveScheduleLocal();
+  renderSchedule();
+}
+
+function deleteScheduleClass(day, teacher, ci) {
+  if(!confirm('이 수업을 삭제할까요?')) return;
+  if(SCHEDULE_DATA[day] && SCHEDULE_DATA[day][teacher]) {
+    SCHEDULE_DATA[day][teacher].splice(ci, 1);
+    saveScheduleLocal();
+    renderSchedule();
+  }
+}
+
+function addScheduleClass(day, teacher) {
+  if(!SCHEDULE_DATA[day]) SCHEDULE_DATA[day] = {};
+  if(!SCHEDULE_DATA[day][teacher]) SCHEDULE_DATA[day][teacher] = [];
+  SCHEDULE_DATA[day][teacher].push({name:'새 수업', time:'00:00-00:00', students:''});
+  renderSchedule();
+}
+
+function addScheduleTeacher() {
+  var name = prompt('선생님 이름을 입력해주세요:');
+  if(!name || !name.trim()) return;
+  if(!SCHEDULE_DATA[currentScheduleDay]) SCHEDULE_DATA[currentScheduleDay] = {};
+  SCHEDULE_DATA[currentScheduleDay][name.trim()] = [];
+  renderSchedule();
+}
+
+function saveScheduleLocal() {
+  // localStorage 저장 비활성화 - 코드의 SCHEDULE_DATA 사용
+}
+
+// 시간표는 항상 코드의 SCHEDULE_DATA 사용 (localStorage 무시)
+localStorage.removeItem('bomnal_schedule');
+
+
+// ── 수업 이동 ──
+var moveTarget = null; // {day, teacher, ci}
+
+function openMoveSchedule(day, teacher, ci) {
+  moveTarget = {day:day, teacher:teacher, ci:parseInt(ci)};
+  var cls = SCHEDULE_DATA[day][teacher][ci];
+
+  // 미리보기
+  document.getElementById('move-card-preview').innerHTML =
+    '<b>'+cls.name+'</b> ('+cls.time+')<br><span style="color:#888;font-size:11px">'+cls.students.split('/').slice(0,4).join(' / ')+'...</span>';
+
+  // 요일 선택 기본값
+  document.getElementById('move-day').value = day;
+
+  // 선생님 목록 업데이트
+  updateMoveTeacherList(day);
+
+  // 요일 변경시 선생님 목록 갱신
+  document.getElementById('move-day').onchange = function() {
+    updateMoveTeacherList(this.value);
+  };
+
+  openOv('ov-schedule-move');
+}
+
+function updateMoveTeacherList(day) {
+  var allTeachers = ['Alicia','Claire','상은T','현아T','유미T','준식T'];
+  var sel = document.getElementById('move-teacher');
+  sel.innerHTML = allTeachers.map(function(t) {
+    return '<option value="'+t+'">'+t+'</option>';
+  }).join('');
+  if(moveTarget) sel.value = moveTarget.teacher;
+}
+
+function doMoveSchedule() {
+  if(!moveTarget) return;
+  var toDay = document.getElementById('move-day').value;
+  var toTeacher = document.getElementById('move-teacher').value;
+  var fromDay = moveTarget.day;
+  var fromTeacher = moveTarget.teacher;
+  var ci = moveTarget.ci;
+
+  if(toDay === fromDay && toTeacher === fromTeacher) {
+    alert('같은 위치예요!');
+    return;
+  }
+
+  // 수업 꺼내기
+  var cls = SCHEDULE_DATA[fromDay][fromTeacher].splice(ci, 1)[0];
+
+  // 목적지에 추가
+  if(!SCHEDULE_DATA[toDay]) SCHEDULE_DATA[toDay] = {};
+  if(!SCHEDULE_DATA[toDay][toTeacher]) SCHEDULE_DATA[toDay][toTeacher] = [];
+  SCHEDULE_DATA[toDay][toTeacher].push(cls);
+
+  // 빈 선생님 열 정리
+  if(SCHEDULE_DATA[fromDay][fromTeacher].length === 0) {
+    delete SCHEDULE_DATA[fromDay][fromTeacher];
+  }
+
+  closeOv('ov-schedule-move');
+  renderSchedule();
+  alert(cls.name + ' 이동 완료!');
+}
+</script>
+</body>
+</html>
