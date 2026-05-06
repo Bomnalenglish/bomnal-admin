@@ -175,9 +175,27 @@ tr:hover td{background:#fafafa}
 .schedule-edit-area{margin-top:6px;display:none}
 .schedule-edit-area textarea{width:100%;font-size:11px;padding:5px;border:1px solid #ddd;border-radius:4px;resize:vertical;font-family:inherit;min-height:60px}
 .schedule-edit-area .edit-btns{display:flex;gap:5px;margin-top:4px}
+
+@keyframes slideInRight {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 </style>
 </head>
 <body>
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:#f7f6f2;z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.07)">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-size:26px;font-weight:700">🌸 봄날 English</div>
+      <div style="font-size:13px;color:#888;margin-top:4px">관리자 시스템</div>
+    </div>
+    <input type="email" id="li-email" placeholder="이메일" autocomplete="email" style="width:100%;padding:11px 12px;border:1.5px solid #e8e6e0;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:12px">
+    <input type="password" id="li-pw" placeholder="비밀번호" autocomplete="current-password" style="width:100%;padding:11px 12px;border:1.5px solid #e8e6e0;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:14px">
+    <button id="li-btn" style="width:100%;padding:12px;background:#1a1916;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">로그인</button>
+    <div id="li-err" style="font-size:12px;color:#c0392b;margin-top:10px;text-align:center;min-height:18px"></div>
+  </div>
+</div>
+<div id="app-screen" style="display:none">
 <div class="wrap">
 <div class="header">
   <div>
@@ -210,7 +228,7 @@ tr:hover td{background:#fafafa}
 <div class="panel" id="panel-notice">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
     <div style="font-size:15px;font-weight:700">공지사항</div>
-    <button class="btn pri" id="btn-write-notice" onclick="openWriteNotice()" style="display:none">+ 공지 작성</button>
+    <button class="btn pri" onclick="openWriteNotice()">+ 공지 작성</button>
   </div>
   <div id="notice-list"><div class="empty">아직 공지가 없어요</div></div>
 </div>
@@ -829,24 +847,32 @@ tr:hover td{background:#fafafa}
 <div class="modal-bg" id="ov-book-edit">
   <div class="modal">
     <h3>교재 수정</h3>
-    <div class="frow2"><label>학생 이름</label><input type="text" id="be-name" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+    <div class="frow2">
+      <label>학생 이름</label>
+      <input type="text" id="be-name" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
     <div class="frow2"><label>교재명 *</label><input type="text" id="be-book" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
     <div class="fgrid2">
       <div class="frow2"><label>금액</label><input type="number" id="be-amount" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div class="frow2"><label>결제방식</label>
+      <div class="frow2">
+        <label>결제방식</label>
         <select id="be-pay-type" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
-          <option value="">선택...</option><option>계좌이체</option><option>현장카드</option><option>결제선생</option>
+          <option value="">선택...</option>
+          <option>계좌이체</option><option>현장카드</option><option>결제선생</option>
         </select>
       </div>
     </div>
     <div class="fgrid2">
       <div class="frow2"><label>문자 발송일</label><input type="date" id="be-date" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
-      <div class="frow2"><label>입고일</label><input type="date" id="be-arrival" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+      <div class="frow2"><label>입고일 <span style="font-size:10px;color:#aaa;font-weight:400">(입고 후 입력)</span></label><input type="date" id="be-arrival" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
     </div>
-    <div class="frow2"><label>담당 선생님</label>
+    <div class="frow2">
+      <label>담당 선생님</label>
       <select id="be-manager" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
-        <option value="">선택...</option><option>원장님</option><option>황현아</option><option>이설경</option>
-        <option>양준식</option><option>정상은</option><option>한유미</option><option>이민우</option><option>임채은</option><option>황호영</option>
+        <option value="">선택...</option>
+        <option>원장님</option><option>황현아</option><option>이설경</option>
+        <option>양준식</option><option>정상은</option><option>한유미</option>
+        <option>이민우</option><option>임채은</option><option>황호영</option>
       </select>
     </div>
     <div class="frow2"><label>메모</label><input type="text" id="be-memo" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
@@ -1880,21 +1906,16 @@ function editBook(i) {
 
 function saveBookEdit() {
   if(editBookIdx < 0) return;
-  var r = BD[editBookIdx];
-  var updated = {
-    name: document.getElementById('be-name').value.trim(),
-    book: document.getElementById('be-book').value.trim(),
-    amount: parseInt(document.getElementById('be-amount').value)||0,
-    payType: document.getElementById('be-pay-type').value,
-    dateStr: document.getElementById('be-date').value,
-    arrival: document.getElementById('be-arrival').value,
-    manager: document.getElementById('be-manager').value,
-    memo: document.getElementById('be-memo').value.trim()
-  };
+  BD[editBookIdx].name = document.getElementById('be-name').value.trim();
+  BD[editBookIdx].book = document.getElementById('be-book').value.trim();
+  BD[editBookIdx].amount = parseInt(document.getElementById('be-amount').value)||0;
+  BD[editBookIdx].payType = document.getElementById('be-pay-type').value;
+  BD[editBookIdx].dateStr = document.getElementById('be-date').value;
+  BD[editBookIdx].arrival = document.getElementById('be-arrival').value;
+  BD[editBookIdx].manager = document.getElementById('be-manager').value;
+  BD[editBookIdx].memo = document.getElementById('be-memo').value.trim();
   closeOv('ov-book-edit');
-  // Firestore 업데이트는 module script에서 처리
-  if(window._saveBookEditFirestore) window._saveBookEditFirestore(r.id, updated);
-  else { Object.assign(BD[editBookIdx], updated); fb(); }
+  fb();
 }
 function deleteBook(i) {
   if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?')) return;
@@ -2823,7 +2844,6 @@ var ACCOUNT = JSON.parse(localStorage.getItem('bomnal_account') || '{"bank":"카
 
 function saveTeachers() {
   localStorage.setItem('bomnal_teachers', JSON.stringify(TEACHERS));
-  if(window._saveSettingsFirestore) window._saveSettingsFirestore();
 }
 
 function renderSettings() {
@@ -2884,7 +2904,6 @@ function saveAccountInfo() {
     holder: document.getElementById('account-holder').value.trim()
   };
   localStorage.setItem('bomnal_account', JSON.stringify(ACCOUNT));
-  if(window._saveSettingsFirestore) window._saveSettingsFirestore();
   var saved = document.getElementById('account-saved');
   if (saved) { saved.style.display = 'block'; setTimeout(function(){ saved.style.display = 'none'; }, 2000); }
   updateSmsTemplatePreview();
@@ -3411,7 +3430,6 @@ async function testAligoSms() {
 
 </script>
 </div><!-- app-screen -->
-
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
@@ -3421,51 +3439,52 @@ import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc,
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const fbApp = initializeApp({
-  apiKey: "AIzaSyDSxsGjOdNX1tOhOyNLVaooWW7IAywkdyM",
-  authDomain: "bomnal-admin.firebaseapp.com",
-  projectId: "bomnal-admin",
-  storageBucket: "bomnal-admin.firebasestorage.app",
-  messagingSenderId: "1079029970303",
-  appId: "1:1079029970303:web:ad98df559f8d1d4c06564a"
+  apiKey:"AIzaSyDSxsGjOdNX1tOhOyNLVaooWW7IAywkdyM",
+  authDomain:"bomnal-admin.firebaseapp.com",
+  projectId:"bomnal-admin",
+  storageBucket:"bomnal-admin.firebasestorage.app",
+  messagingSenderId:"1079029970303",
+  appId:"1:1079029970303:web:ad98df559f8d1d4c06564a"
 });
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 let ME = null;
 
 const ROLE_TABS = {
-  director: ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn','settings'],
-  manager:  ['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
-  teacher:  ['notice','schedule','book','absent','vocab']
+  director:['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn','settings'],
+  manager:['notice','schedule','junior','senior','members','book','summary','absent','vocab','history','withdrawn'],
+  teacher:['notice','schedule','book','absent','vocab']
 };
 const TAB_LABELS = {
-  notice:'공지사항', schedule:'📅 시간표', junior:'초중등부', senior:'고등부',
-  members:'회원명부', book:'교재비', summary:'현황 요약', absent:'결석예정자',
-  vocab:'단어시험', history:'이전 기록', withdrawn:'퇴원생', settings:'⚙ 설정'
+  notice:'공지사항',schedule:'📅 시간표',junior:'초중등부',senior:'고등부',
+  members:'회원명부',book:'교재비',summary:'현황 요약',absent:'결석예정자',
+  vocab:'단어시험',history:'이전 기록',withdrawn:'퇴원생',settings:'⚙ 설정'
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-  const liBtn = document.getElementById('li-btn');
-  const liEmail = document.getElementById('li-email');
-  const liPw = document.getElementById('li-pw');
-  if(liBtn) liBtn.onclick = async function() {
-    const email = liEmail.value.trim();
-    const pw = liPw.value;
-    document.getElementById('li-err').textContent = '';
-    if(!email||!pw){document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요';return;}
-    try { this.textContent='로그인 중...'; await signInWithEmailAndPassword(auth,email,pw); }
-    catch(e) { document.getElementById('li-err').textContent='이메일 또는 비밀번호가 올바르지 않아요'; this.textContent='로그인'; }
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('li-btn');
+  const email = document.getElementById('li-email');
+  const pw = document.getElementById('li-pw');
+  if(btn) btn.onclick = async function() {
+    const e=email.value.trim(), p=pw.value;
+    document.getElementById('li-err').textContent='';
+    if(!e||!p){document.getElementById('li-err').textContent='이메일과 비밀번호를 입력해주세요';return;}
+    try{this.textContent='로그인 중...';await signInWithEmailAndPassword(auth,e,p);}
+    catch(err){document.getElementById('li-err').textContent='이메일 또는 비밀번호가 올바르지 않아요';this.textContent='로그인';}
   };
-  if(liEmail) liEmail.addEventListener('keydown',e=>{if(e.key==='Enter')liPw.focus();});
-  if(liPw) liPw.addEventListener('keydown',e=>{if(e.key==='Enter')liBtn.click();});
+  if(email) email.addEventListener('keydown',e=>{if(e.key==='Enter')pw.focus();});
+  if(pw) pw.addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});
 });
 
 onAuthStateChanged(auth, async user => {
+  const ls=document.getElementById('login-screen');
+  const as=document.getElementById('app-screen');
   if(user) {
-    const snap = await getDoc(doc(db,'users',user.uid));
-    ME = snap.exists() ? {uid:user.uid,...snap.data()} : {uid:user.uid,email:user.email,name:user.email.split('@')[0],role:'teacher'};
+    const snap=await getDoc(doc(db,'users',user.uid));
+    ME=snap.exists()?{uid:user.uid,...snap.data()}:{uid:user.uid,email:user.email,name:user.email.split('@')[0],role:'teacher'};
     if(!snap.exists()) await setDoc(doc(db,'users',user.uid),{name:ME.name,role:ME.role,email:user.email});
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app-screen').style.display='block';
+    if(ls) ls.style.display='none';
+    if(as) as.style.display='block';
     const badge=document.getElementById('user-badge');
     if(badge){badge.textContent=ME.name;badge.style.display='inline-block';}
     buildTabsByRole();
@@ -3480,26 +3499,27 @@ onAuthStateChanged(auth, async user => {
     initStudentsIfEmpty();
   } else {
     ME=null;
-    document.getElementById('login-screen').style.display='flex';
-    document.getElementById('app-screen').style.display='none';
-    document.getElementById('li-btn').textContent='로그인';
+    if(ls) ls.style.display='flex';
+    if(as) as.style.display='none';
+    const btn=document.getElementById('li-btn');if(btn)btn.textContent='로그인';
   }
 });
 
 function buildTabsByRole() {
   const tabs=ROLE_TABS[ME.role]||ROLE_TABS.teacher;
   const tabsEl=document.querySelector('.tabs');
-  if(!tabsEl)return;
+  if(!tabsEl) return;
   tabsEl.innerHTML=tabs.map((t,i)=>{
     const badge=(t==='history'||t==='withdrawn')?`<span id="badge-${t}" style="font-size:11px;background:#f0f0f0;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:600">0</span>`:'';
     return `<button class="tab${i===0?' on':''}" onclick="sw('${t}',this)">${TAB_LABELS[t]}${badge}</button>`;
   }).join('');
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   const first=document.getElementById('panel-'+tabs[0]);
-  if(first)first.classList.add('on');
+  if(first) first.classList.add('on');
 }
 
 function subscribeFirestore() {
+  // 학생
   onSnapshot(collection(db,'students'),snap=>{
     TD=[];WD=[];
     snap.forEach(d=>{const s={id:d.id,...d.data()};(s.withdrawn?WD:TD).push(s);});
@@ -3509,55 +3529,59 @@ function subscribeFirestore() {
     updCls('junior');updCls('senior');rt('junior');rt('senior');
     updStats('junior');updStats('senior');renderMembers();renderVocab();
     const wc=document.getElementById('wc');if(wc)wc.textContent=WD.length;
-    const badge=document.getElementById('badge-withdrawn');if(badge)badge.textContent=WD.length;
+    const bw=document.getElementById('badge-withdrawn');if(bw)bw.textContent=WD.length;
   });
+  // 교재비
   onSnapshot(collection(db,'books'),snap=>{
     BD=[];snap.forEach(d=>BD.push({id:d.id,...d.data()}));
     BD.sort((a,b)=>(b.dateStr||'').localeCompare(a.dateStr||''));fb();
   });
+  // 결석
   onSnapshot(collection(db,'absent'),snap=>{
     ABSENT=[];snap.forEach(d=>ABSENT.push({id:d.id,...d.data()}));
     ABSENT.sort((a,b)=>a.date>b.date?1:-1);renderAbsent();
   });
+  // 단어시험
   onSnapshot(doc(db,'vocab','data'),snap=>{
     if(snap.exists()){const d=snap.data();VOCAB_MONTHLY=d.monthly||{};VOCAB_TOTALS=d.totals||{};}
     renderVocab();
   });
+  // 이전기록
   onSnapshot(doc(db,'tuition','history'),snap=>{
     TUITION_HIST=snap.exists()?(snap.data().list||[]):[];
     const b=document.getElementById('badge-history');if(b)b.textContent=TUITION_HIST.length;
   });
+  // 공지
   onSnapshot(query(collection(db,'notices'),orderBy('createdAt','desc')),snap=>{
     NOTICES=[];snap.forEach(d=>NOTICES.push({id:d.id,...d.data()}));
     renderNotices();checkNoticePopup();
   });
-  // 설정 (선생님 목록, 계좌 정보)
-  onSnapshot(doc(db,'settings','config'), snap => {
-    if(snap.exists()) {
-      const d = snap.data();
-      if(d.teachers) { TEACHERS = d.teachers; }
-      if(d.account) { ACCOUNT = d.account; }
-      if(d.aligo) { ALIGO = d.aligo; }
-      // 설정 탭 열려있으면 다시 렌더
-      const sp = document.getElementById('panel-settings');
-      if(sp && sp.classList.contains('on')) renderSettings();
-    }
-  });
-
+  // 시간표
   onSnapshot(doc(db,'schedule','data'),snap=>{
-    if(snap.exists()&&snap.data().schedule)Object.assign(SCHEDULE_DATA,snap.data().schedule);
+    if(snap.exists()&&snap.data().schedule) Object.assign(SCHEDULE_DATA,snap.data().schedule);
     else setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});
-    if(document.getElementById('schedule-area'))renderSchedule();
+    if(document.getElementById('schedule-area')) renderSchedule();
   });
+  // 설정
+  onSnapshot(doc(db,'settings','config'),snap=>{
+    if(snap.exists()){
+      const d=snap.data();
+      if(d.teachers&&d.teachers.length) TEACHERS=d.teachers;
+      if(d.account) ACCOUNT=d.account;
+      if(d.aligo) { ALIGO=d.aligo; }
+    }
+    renderSettings();
+    updateTeacherDropdowns();
+  });
+  // 알림
   onSnapshot(query(collection(db,'notifications'),orderBy('createdAt','desc')),snap=>{
     snap.docChanges().forEach(change=>{
       if(change.type==='added'){
         const n={id:change.doc.id,...change.doc.data()};
         const isDesk=ME&&(ME.role==='director'||ME.role==='manager'||(ME.name&&ME.name.includes('호영')));
         if(isDesk&&!(n.readBy||[]).includes(ME.uid)){
-          const createdAt=n.createdAt&&n.createdAt.toDate?n.createdAt.toDate():null;
-          const isRecent=!createdAt||(Date.now()-createdAt.getTime()<10000);
-          if(isRecent)showBookNotification(n);
+          const t=n.createdAt&&n.createdAt.toDate?n.createdAt.toDate():null;
+          if(!t||(Date.now()-t.getTime()<10000)) showBookNotification(n);
         }
       }
     });
@@ -3566,10 +3590,19 @@ function subscribeFirestore() {
 
 async function initStudentsIfEmpty() {
   const snap=await getDocs(collection(db,'students'));
-  if(snap.empty){for(const s of INITIAL_STUDENTS)await addDoc(collection(db,'students'),s);}
+  if(snap.empty) for(const s of INITIAL_STUDENTS) await addDoc(collection(db,'students'),s);
 }
 
-// Firestore 오버라이드
+// ── Firestore 오버라이드 ──
+window._saveSettingsFirestore=async function(){
+  try{
+    await setDoc(doc(db,'settings','config'),{teachers:TEACHERS,account:ACCOUNT,aligo:ALIGO});
+    console.log('설정 저장 완료');
+  }catch(e){console.error('설정 저장 실패:',e);}
+};
+window.saveScheduleLocal=async function(){
+  try{await setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});}catch(e){console.error(e);}
+};
 window.togPaid=async function(id){
   const r=TD.find(s=>s.id===id);if(!r)return;
   const mk=curKey();const pm={...(r.paidMonths||{})},pd={...(r.paidDates||{})};
@@ -3621,10 +3654,10 @@ window.clearDate=async function(){
 window.addBook=async function(){
   const book=document.getElementById('b-book').value.trim();
   const inputName=document.getElementById('b-student-input').value.trim();
-  if(!bookSelectedStudents.length&&inputName)bookSelectedStudents.push({name:inputName,phone:''});
+  if(!bookSelectedStudents.length&&inputName) bookSelectedStudents.push({name:inputName,phone:''});
   if(!bookSelectedStudents.length||!book){alert('학생과 교재명은 필수입니다');return;}
-  const manager=document.getElementById('b-manager').value;
   const amount=parseInt(document.getElementById('b-amount').value)||0;
+  const manager=document.getElementById('b-manager').value;
   for(const s of bookSelectedStudents){
     await addDoc(collection(db,'books'),{
       name:s.name,phone:s.phone,book,amount,
@@ -3635,10 +3668,10 @@ window.addBook=async function(){
       isPaid:false,paidDate:''
     });
   }
-  const studentNames=bookSelectedStudents.map(s=>s.name).join(', ');
+  const names=bookSelectedStudents.map(s=>s.name).join(', ');
   await addDoc(collection(db,'notifications'),{
     type:'book_order',title:'📚 교재 주문 요청',
-    body:(ME.name||'선생님')+'이 교재를 추가했어요.\n학생: '+studentNames+'\n교재: '+book+(amount?'\n금액: '+amount.toLocaleString()+'원':''),
+    body:(ME.name||'선생님')+'이 교재를 추가했어요.\n학생: '+names+'\n교재: '+book+(amount?'\n금액: '+amount.toLocaleString()+'원':''),
     from:ME.name||'',targetRole:'desk',readBy:[],createdAt:serverTimestamp()
   });
   closeOv('ov-book');alert(bookSelectedStudents.length+'명 교재 추가됐어요!');
@@ -3647,24 +3680,14 @@ window.togBook=async function(id){
   const r=BD.find(b=>b.id===id);if(!r)return;
   await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
 };
-window._saveSettingsFirestore = async function() {
-  try {
-    await setDoc(doc(db,'settings','config'), {
-      teachers: TEACHERS,
-      account: ACCOUNT,
-      aligo: ALIGO
-    });
-  } catch(e) { console.error('설정 저장 실패:', e); }
-};
-window._saveSettingsFirestore=window._saveSettingsFirestore;
-window._saveBookEditFirestore=async function(id, updated){
-  if(!id) return;
-  try { await updateDoc(doc(db,'books',id), updated); } catch(e){ console.error(e); }
-};
 window.deleteBook=async function(i){
   if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?'))return;
   const id=BD[i].id;
-  if(id)await deleteDoc(doc(db,'books',id));else{BD.splice(i,1);fb();}
+  if(id) await deleteDoc(doc(db,'books',id));else{BD.splice(i,1);fb();}
+};
+window._saveBookEditFirestore=async function(id,updated){
+  if(!id)return;
+  try{await updateDoc(doc(db,'books',id),updated);}catch(e){console.error(e);}
 };
 window.addAbsent=async function(){
   const date=document.getElementById('ab-date').value;
@@ -3682,7 +3705,7 @@ window.saveNotice=async function(){
   if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
   const allChecked=document.getElementById('n-all').checked;
   const targets=[];
-  if(allChecked)targets.push('전체');
+  if(allChecked) targets.push('전체');
   else document.querySelectorAll('.n-teacher:checked').forEach(cb=>targets.push(cb.value));
   if(!targets.length){alert('수신 대상을 선택해주세요');return;}
   await addDoc(collection(db,'notices'),{
@@ -3696,11 +3719,8 @@ window.deleteNotice=async function(idx){
 };
 window.confirmAllNotices=async function(){
   const unread=NOTICES.filter(n=>!(n.readBy||[]).includes(ME.uid)&&n.authorUid!==ME.uid);
-  for(const n of unread)await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
+  for(const n of unread) await updateDoc(doc(db,'notices',n.id),{readBy:arrayUnion(ME.uid),readNames:arrayUnion(ME.name)});
   const p=document.getElementById('npopup');if(p)p.remove();
-};
-window.saveScheduleLocal=async function(){
-  try{await setDoc(doc(db,'schedule','data'),{schedule:SCHEDULE_DATA});}catch(e){}
 };
 window.doNextMonth=async function(){
   const mk=curKey();
@@ -3708,7 +3728,7 @@ window.doNextMonth=async function(){
   const existing=[...TUITION_HIST];
   existing.push({year:curYear,month:curMonth,label:`${curYear}년 ${curMonth}월`,students:snapshot});
   await setDoc(doc(db,'tuition','history'),{list:existing});
-  for(const r of TD)if(r.isNew)await updateDoc(doc(db,'students',r.id),{isNew:false});
+  for(const r of TD) if(r.isNew) await updateDoc(doc(db,'students',r.id),{isNew:false});
   if(curMonth===12){curMonth=1;curYear++;}else{curMonth++;}
   updHeader();closeOv('ov-next');alert('넘겼어요!');
 };
@@ -3717,32 +3737,26 @@ function showBookNotification(n){
   if(document.getElementById('notif-'+n.id))return;
   const div=document.createElement('div');
   div.id='notif-'+n.id;
-  div.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;background:#1a1916;color:#fff;border-radius:12px;padding:14px 16px;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideInRight .3s ease';
+  div.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;background:#1a1916;color:#fff;border-radius:12px;padding:14px 16px;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3)';
   const nid=n.id;
-  div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
-    '<div><div style="font-size:13px;font-weight:700;margin-bottom:5px">'+n.title+'</div>'+
+  div.innerHTML='<div><div style="font-size:13px;font-weight:700;margin-bottom:5px">'+n.title+'</div>'+
     '<div style="font-size:12px;color:#ccc;white-space:pre-line;line-height:1.6">'+n.body+'</div></div>'+
-    '<button data-nid="'+nid+'" onclick="dismissNotif(this.dataset.nid)" style="background:none;border:none;color:#888;font-size:16px;cursor:pointer;flex-shrink:0">✕</button></div>'+
     '<div style="margin-top:10px;display:flex;gap:6px">'+
-    '<button data-nid="'+nid+'" onclick="confirmBookNotif(this.dataset.nid)" style="flex:1;padding:5px;background:#2d7a5f;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✓ 확인</button>'+
-    '<button data-nid="'+nid+'" onclick="goToBook(this.dataset.nid)" style="flex:1;padding:5px;background:#1a5fa0;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">교재비 탭으로</button></div>';
+    '<button data-nid="'+nid+'" onclick="confirmBookNotif(this.dataset.nid)" style="flex:1;padding:5px;background:#2d7a5f;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">✓ 확인</button>'+
+    '<button data-nid="'+nid+'" onclick="goToBook(this.dataset.nid)" style="flex:1;padding:5px;background:#1a5fa0;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">교재비 탭으로</button></div>';
   document.body.appendChild(div);
-  setTimeout(()=>dismissNotif(nid),15000);
+  setTimeout(()=>{if(div.parentNode)div.remove();},15000);
 }
-window.dismissNotif=function(id){
-  const el=document.getElementById('notif-'+id);
-  if(el){el.style.opacity='0';el.style.transform='translateX(20px)';el.style.transition='.2s';setTimeout(()=>el.remove(),200);}
-};
+window.dismissNotif=function(id){const el=document.getElementById('notif-'+id);if(el)el.remove();};
 window.confirmBookNotif=async function(id){
   dismissNotif(id);
   try{await updateDoc(doc(db,'notifications',id),{readBy:arrayUnion(ME.uid)});}catch(e){}
 };
 window.goToBook=function(id){
   dismissNotif(id);confirmBookNotif(id);
-  const bookTab=[...document.querySelectorAll('.tab')].find(t=>t.textContent.includes('교재비'));
-  if(bookTab)bookTab.click();
+  const t=[...document.querySelectorAll('.tab')].find(t=>t.textContent.includes('교재비'));
+  if(t)t.click();
 };
-window.showBookNotification=showBookNotification;
 
 function checkNoticePopup(){
   if(!ME)return;
@@ -3760,93 +3774,7 @@ function checkNoticePopup(){
   </div>`;
   document.body.appendChild(div);
 }
-
-// ── 알리고 SMS (일반 script) ──
-var ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
-
-function saveAligoSettings() {
-  ALIGO = {
-    user: document.getElementById('aligo-user').value.trim(),
-    key: document.getElementById('aligo-key').value.trim(),
-    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  try {
-    localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
-    var check = JSON.parse(localStorage.getItem('bomnal_aligo') || '{}');
-    var saved = document.getElementById('aligo-saved');
-    if(saved) {
-      saved.textContent = check.key ? '저장됐어요! (Key: '+check.key.substr(0,4)+'***)' : '저장 실패!';
-      saved.style.display = 'block';
-      setTimeout(function(){ saved.style.display = 'none'; }, 4000);
-    }
-    if(window._saveSettingsFirestore) window._saveSettingsFirestore();
-  } catch(e) { alert('저장 오류: '+e.message); }
-}
-
-function renderAligoSettings() {
-  ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
-  var u = document.getElementById('aligo-user'); if(u) u.value = ALIGO.user||'';
-  var k = document.getElementById('aligo-key'); if(k) k.value = ALIGO.key||'';
-  var s = document.getElementById('aligo-sender'); if(s) s.value = ALIGO.sender||'';
-}
-
-async function sendAligoSms(phone, msg) {
-  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender) {
-    alert('설정 탭에서 알리고 API 정보를 먼저 입력해주세요!'); return false;
-  }
-  if(!phone) { alert('전화번호가 없어요!'); return false; }
-  var formData = new FormData();
-  formData.append('key', ALIGO.key);
-  formData.append('user_id', ALIGO.user);
-  formData.append('sender', ALIGO.sender);
-  formData.append('receiver', phone.replace(/-/g,''));
-  formData.append('msg', msg);
-  formData.append('testmode_yn', 'N');
-  try {
-    var res = await fetch('https://apis.aligo.in/send/', {method:'POST', body:formData});
-    var data = await res.json();
-    if(data.result_code==='1') return true;
-    alert('발송 실패: '+(data.message||'오류')); return false;
-  } catch(e) { alert('발송 오류: '+e.message); return false; }
-}
-
-async function testAligoSms() {
-  ALIGO = {
-    user: document.getElementById('aligo-user').value.trim(),
-    key: document.getElementById('aligo-key').value.trim(),
-    sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
-  };
-  if(!ALIGO.user||!ALIGO.key||!ALIGO.sender) { alert('User ID, API Key, 발신번호를 모두 입력해주세요!'); return; }
-  var testPhone = prompt('테스트 발송할 전화번호:');
-  if(!testPhone) return;
-  var ok = await sendAligoSms(testPhone.replace(/-/g,''), '봄날 English 문자 테스트입니다 :)');
-  if(ok) alert('테스트 문자 발송됐어요!');
-}
-
-function getBookSmsText(r) {
-  var accountStr = ACCOUNT && ACCOUNT.number
-    ? ACCOUNT.bank+' '+ACCOUNT.number+' ('+ACCOUNT.holder+')'
-    : '계좌 미등록 (설정 탭에서 등록)';
-  return [
-    r.name+' 학생 새 교재 주문 예정입니다.',
-    '',
-    '교재: '+r.book,
-    '결제금: '+(r.amount||0).toLocaleString()+'원',
-    '결제방식: '+(r.payType||'계좌이체'),
-    '결제계좌: '+accountStr,
-    '',
-    '개인구매를 원하시는 경우 데스크로 연락 부탁드립니다.',
-    '감사합니다 :) 봄날 English'
-  ].join('\n');
-}
-
-function sendBookSms(i) {
-  var r = BD[i]; if(!r) return;
-  var student = TD.find(function(s){ return s.name===r.name; });
-  var phone = r.phone||(student&&student.phone)||'';
-  var msg = getBookSmsText(r);
-  openSmsSendModal(r.name, phone, msg);
-}
 </script>
+</div><!-- app-screen -->
 </body>
 </html>
