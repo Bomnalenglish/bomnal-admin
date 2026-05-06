@@ -3580,7 +3580,16 @@ function saveAligoSettings() {
     key: document.getElementById('aligo-key').value.trim(),
     sender: document.getElementById('aligo-sender').value.trim().replace(/-/g,'')
   };
-  localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
+  try {
+    localStorage.setItem('bomnal_aligo', JSON.stringify(ALIGO));
+    var check = JSON.parse(localStorage.getItem('bomnal_aligo')||'{}');
+    var saved = document.getElementById('aligo-saved');
+    if(saved) {
+      saved.textContent = check.key ? '✓ 저장됐어요! (Key: '+check.key.substr(0,4)+'***)' : '저장 실패!';
+      saved.style.display='block';
+      setTimeout(function(){ saved.style.display='none'; }, 4000);
+    }
+  } catch(e) { alert('저장 오류: '+e.message); }
   var saved = document.getElementById('aligo-saved');
   if(saved) { saved.style.display='block'; setTimeout(function(){ saved.style.display='none'; }, 2000); }
 }
