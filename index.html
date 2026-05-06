@@ -3518,7 +3518,7 @@ function checkNoticePopup() {
 }
 
 // ── 교재 주문 알림 팝업 ──
-function showBookNotification(n) {
+window.showBookNotification = function showBookNotification(n) {
   // 이미 같은 알림 있으면 스킵
   if(document.getElementById('notif-'+n.id)) return;
 
@@ -3553,17 +3553,17 @@ function showBookNotification(n) {
   setTimeout(function() { dismissNotif(n.id); }, 15000);
 }
 
-function dismissNotif(id) {
+window.dismissNotif = function dismissNotif(id) {
   const el = document.getElementById('notif-'+id);
   if(el) { el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='.2s'; setTimeout(()=>el.remove(),200); }
 }
 
-async function confirmBookNotif(id) {
+async window.confirmBookNotif = function confirmBookNotif(id) {
   dismissNotif(id);
   try { await updateDoc(doc(db,'notifications',id),{readBy:arrayUnion(ME.uid)}); } catch(e){}
 }
 
-function goToBook(id) {
+window.goToBook = function goToBook(id) {
   dismissNotif(id);
   confirmBookNotif(id);
   // 교재비 탭으로 이동
@@ -3574,7 +3574,7 @@ function goToBook(id) {
 // ── 알리고 SMS ──
 var ALIGO = JSON.parse(localStorage.getItem('bomnal_aligo') || '{"user":"","key":"","sender":""}');
 
-function saveAligoSettings() {
+window.saveAligoSettings = function saveAligoSettings() {
   ALIGO = {
     user: document.getElementById('aligo-user').value.trim(),
     key: document.getElementById('aligo-key').value.trim(),
@@ -3594,7 +3594,7 @@ function saveAligoSettings() {
   if(saved) { saved.style.display='block'; setTimeout(function(){ saved.style.display='none'; }, 2000); }
 }
 
-function renderAligoSettings() {
+window.renderAligoSettings = function renderAligoSettings() {
   var u = document.getElementById('aligo-user');
   var k = document.getElementById('aligo-key');
   var s = document.getElementById('aligo-sender');
@@ -3623,7 +3623,7 @@ function getBookSmsText(r) {
 감사합니다 :) 봄날 English';
 }
 
-async function sendAligoSms(phone, msg) {
+window.sendAligoSms = async function sendAligoSms(phone, msg) {
   if(!ALIGO.user || !ALIGO.key || !ALIGO.sender) {
     alert('설정 탭에서 알리고 API 정보를 먼저 입력해주세요!');
     return false;
@@ -3659,7 +3659,7 @@ async function sendAligoSms(phone, msg) {
   }
 }
 
-async function sendBookSms(i) {
+async window.sendBookSms = function sendBookSms(i) {
   var r = BD[i];
   if(!r) return;
 
@@ -3690,7 +3690,7 @@ async function sendBookSms(i) {
   }
 }
 
-async function testAligoSms() {
+window.testAligoSms = async function testAligoSms() {
   ALIGO = {
     user: document.getElementById('aligo-user').value.trim(),
     key: document.getElementById('aligo-key').value.trim(),
