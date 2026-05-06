@@ -702,7 +702,7 @@ tr:hover td{background:#fafafa}
     </div>
     <div class="fgrid2">
       <div class="frow2">
-        <label>학생 개별 추가</label>
+        <label>학생 이름 <span style="font-size:10px;color:#aaa;font-weight:400">(검색 또는 직접 입력)</span></label>
         <div style="position:relative">
           <input type="text" id="b-student-input" placeholder="이름 검색..." autocomplete="off" oninput="bookStudentSearch(this.value)" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none">
           <div id="b-student-list" style="display:none;position:absolute;z-index:400;background:#fff;border:1px solid #e8e6e0;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;width:100%;margin-top:2px"></div>
@@ -821,6 +821,38 @@ tr:hover td{background:#fafafa}
       <button class="btn" onclick="closeOv('ov-sms-send')">취소</button>
       <button class="btn" onclick="copySmsBody()" style="border-color:#2d7a5f;color:#2d7a5f">📋 복사</button>
       <button class="btn pri" onclick="doSendSms()">📤 발송</button>
+    </div>
+  </div>
+</div>
+
+<!-- 교재 수정 모달 -->
+<div class="modal-bg" id="ov-book-edit">
+  <div class="modal">
+    <h3>교재 수정</h3>
+    <div class="frow2"><label>학생 이름</label><input type="text" id="be-name" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+    <div class="frow2"><label>교재명 *</label><input type="text" id="be-book" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+    <div class="fgrid2">
+      <div class="frow2"><label>금액</label><input type="number" id="be-amount" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+      <div class="frow2"><label>결제방식</label>
+        <select id="be-pay-type" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+          <option value="">선택...</option><option>계좌이체</option><option>현장카드</option><option>결제선생</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid2">
+      <div class="frow2"><label>문자 발송일</label><input type="date" id="be-date" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+      <div class="frow2"><label>입고일</label><input type="date" id="be-arrival" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+    </div>
+    <div class="frow2"><label>담당 선생님</label>
+      <select id="be-manager" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;background:#fff">
+        <option value="">선택...</option><option>원장님</option><option>황현아</option><option>이설경</option>
+        <option>양준식</option><option>정상은</option><option>한유미</option><option>이민우</option><option>임채은</option><option>황호영</option>
+      </select>
+    </div>
+    <div class="frow2"><label>메모</label><input type="text" id="be-memo" style="width:100%;padding:9px 11px;border:1.5px solid #e8e6e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeOv('ov-book-edit')">취소</button>
+      <button class="btn pri" onclick="saveBookEdit()">저장</button>
     </div>
   </div>
 </div>
@@ -1686,6 +1718,7 @@ function fb() {
       '<td><span class="badge '+(r.isPaid?'paid':'unpaid')+'">'+(r.isPaid?(r.pdate||'입금'):'미입금')+'</span></td>' +
       '<td style="font-size:12px;color:#888">'+(r.manager||'-')+'</td>' +
       '<td style="display:flex;gap:4px">' +
+      '<button class="btn sm" onclick="editBook('+i+')" title="수정" style="padding:3px 8px;font-size:13px">✏️</button>' +
       '<button class="btn sm" onclick="copyBookSmsDirect('+i+')" title="문자 복사" style="padding:3px 8px;font-size:13px">📋</button>' +
       '<button class="btn sm" onclick="sendBookSms('+i+')" title="문자 발송" style="padding:3px 8px;font-size:13px;background:#2d7a5f;color:#fff;border-color:#2d7a5f">📤</button>' +
       '<button class="btn sm" onclick="deleteBook('+i+')" title="삭제" style="padding:3px 8px;font-size:13px;border-color:#c0392b;color:#c0392b">🗑</button>' +
@@ -1828,6 +1861,41 @@ function copyBookSms() {
 }
 
 
+
+var editBookIdx = -1;
+
+function editBook(i) {
+  editBookIdx = i;
+  var r = BD[i];
+  document.getElementById('be-name').value = r.name||'';
+  document.getElementById('be-book').value = r.book||'';
+  document.getElementById('be-amount').value = r.amount||'';
+  document.getElementById('be-pay-type').value = r.payType||'';
+  document.getElementById('be-date').value = r.dateStr||'';
+  document.getElementById('be-arrival').value = r.arrival||'';
+  document.getElementById('be-manager').value = r.manager||'';
+  document.getElementById('be-memo').value = r.memo||'';
+  openOv('ov-book-edit');
+}
+
+function saveBookEdit() {
+  if(editBookIdx < 0) return;
+  var r = BD[editBookIdx];
+  var updated = {
+    name: document.getElementById('be-name').value.trim(),
+    book: document.getElementById('be-book').value.trim(),
+    amount: parseInt(document.getElementById('be-amount').value)||0,
+    payType: document.getElementById('be-pay-type').value,
+    dateStr: document.getElementById('be-date').value,
+    arrival: document.getElementById('be-arrival').value,
+    manager: document.getElementById('be-manager').value,
+    memo: document.getElementById('be-memo').value.trim()
+  };
+  closeOv('ov-book-edit');
+  // Firestore 업데이트는 module script에서 처리
+  if(window._saveBookEditFirestore) window._saveBookEditFirestore(r.id, updated);
+  else { Object.assign(BD[editBookIdx], updated); fb(); }
+}
 function deleteBook(i) {
   if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?')) return;
   BD.splice(i, 1);
@@ -2621,7 +2689,7 @@ function saveVocabTotal(cls) {
 }
 
 var vcClsEl = document.getElementById('vc-cls'); if (vcClsEl) vcClsEl.addEventListener('change', updVocabStudents);
-['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move','ov-sms-send'].forEach(function(id) {
+['ov-absent','ov-vocab-settings','ov-edit','ov-vocab-move','ov-vocab-class','ov-notice','ov-book','ov-sms','ov-schedule-move','ov-sms-send','ov-book-edit'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('click', function(e){
     if (e.target===this) closeOv(id);
@@ -3558,6 +3626,10 @@ window.addBook=async function(){
 window.togBook=async function(id){
   const r=BD.find(b=>b.id===id);if(!r)return;
   await updateDoc(doc(db,'books',id),{isPaid:!r.isPaid,paidDate:!r.isPaid?toISO():''});
+};
+window._saveBookEditFirestore=async function(id, updated){
+  if(!id) return;
+  try { await updateDoc(doc(db,'books',id), updated); } catch(e){ console.error(e); }
 };
 window.deleteBook=async function(i){
   if(!confirm(BD[i].name+' / '+BD[i].book+' 삭제할까요?'))return;
